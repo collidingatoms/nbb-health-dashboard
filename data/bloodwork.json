@@ -1,0 +1,243 @@
+{
+  "patient": {
+    "name": "Nikita Bhagat",
+    "age": 40,
+    "bloodGroup": "A+",
+    "obstetricHistory": "G3P1L0A1",
+    "lmp": "2025-10-20",
+    "edd": "2026-07-27",
+    "conditions": ["APLA Positive", "Iron Deficiency Anemia", "Seborrheic Dermatitis"],
+    "dietaryRestrictions": ["No Wheat", "No Milk"]
+  },
+  "dates": ["28-Aug-2025", "20-Dec-2025", "04-Feb-2026", "11-Apr-2026"],
+  "gestationalWeeks": ["Pre-pregnancy", "~9 weeks", "~15 weeks", "~24 weeks"],
+  "cbc": {
+    "hemoglobin": { "values": [12.0, 11.3, 10.9, 11.3], "unit": "g/dL", "refLow": 12.0, "refHigh": 15.0 },
+    "rbc": { "values": [4.62, 4.61, 4.41, 4.11], "unit": "10^6/cu.mm", "refLow": 3.8, "refHigh": 4.8 },
+    "hct": { "values": [35.9, 34.1, 32.9, 34.2], "unit": "%", "refLow": 36, "refHigh": 46 },
+    "mcv": { "values": [77.7, 73.9, 74.6, 83.3], "unit": "fL", "refLow": 83, "refHigh": 101 },
+    "mch": { "values": [26.0, 24.4, 24.8, 27.5], "unit": "pg", "refLow": 27, "refHigh": 32 },
+    "rdwcv": { "values": [14.3, 14.5, 14.8, 16.3], "unit": "%", "refLow": 11.5, "refHigh": 14.0 },
+    "wbc": { "values": [11.44, 11.22, 11.39, 11.21], "unit": "10^3/µL", "refLow": 4, "refHigh": 10 },
+    "neutrophils": { "values": [62, 72.4, 74.7, 75.1], "unit": "%", "refLow": 40, "refHigh": 80 },
+    "lymphocytes": { "values": [25, 20.1, 17.6, 17.2], "unit": "%", "refLow": 20, "refHigh": 40 },
+    "platelets": { "values": [367, 362, 297, 234], "unit": "10^3/µL", "refLow": 150, "refHigh": 410 },
+    "anc": { "values": [7.09, 8.12, 8.51, 8.42], "unit": "10^3/µL", "refLow": 2, "refHigh": 7 },
+    "pdw": { "values": [14.9, 16.3, 13.0, 19.9], "unit": "fL", "refLow": 9, "refHigh": 17 }
+  },
+  "glucose": {
+    "dates": ["08-Jul-2024", "28-Aug-2025", "04-Feb-2026", "11-Apr-2026"],
+    "fasting": { "values": [90, 87, 80, 86], "unit": "mg/dL", "refLow": 70, "refHigh": 99 },
+    "hba1c": { "values": [null, 5.4, 5.1, null], "unit": "%", "refLow": 4.0, "refHigh": 5.6 },
+    "postprandial": { "values": [null, null, 73, null], "unit": "mg/dL", "refLow": 70, "refHigh": 140 },
+    "gct50g": { "values": [null, null, null, 111], "unit": "mg/dL", "refHigh": 140 }
+  },
+  "lipid": {
+    "dates": ["04-Feb-2026"],
+    "totalCholesterol": { "values": [195], "unit": "mg/dL", "refHigh": 200 },
+    "triglycerides": { "values": [115], "unit": "mg/dL", "refHigh": 150 },
+    "hdl": { "values": [60], "unit": "mg/dL", "refLow": 50 },
+    "ldl": { "values": [112], "unit": "mg/dL", "refHigh": 100 },
+    "vldl": { "values": [23], "unit": "mg/dL", "refHigh": 30 },
+    "nonHdl": { "values": [135], "unit": "mg/dL", "refHigh": 130 }
+  },
+  "thyroid": {
+    "dates": ["04-Feb-2026"],
+    "tsh": { "values": [1.559], "unit": "uIU/mL", "refLow": 0.55, "refHigh": 4.78, "pregRefLow": 0.2, "pregRefHigh": 3.0 },
+    "t3": { "values": [1.49], "unit": "ng/mL", "refLow": 0.60, "refHigh": 1.81 },
+    "t4": { "values": [12.3], "unit": "µg/dL", "refLow": 4.5, "refHigh": 12.6 }
+  },
+  "liver": {
+    "dates": ["04-Feb-2026"],
+    "sgot": { "values": [14], "unit": "U/L", "refHigh": 34 },
+    "sgpt": { "values": [12], "unit": "U/L", "refLow": 10, "refHigh": 49 },
+    "alkPhos": { "values": [98], "unit": "U/L", "refLow": 46, "refHigh": 116 },
+    "ggt": { "values": [31], "unit": "U/L", "refHigh": 38 },
+    "bilirubinTotal": { "values": [0.29], "unit": "mg/dL", "refLow": 0.3, "refHigh": 1.2 },
+    "proteinTotal": { "values": [6.40], "unit": "g/dL", "refLow": 5.7, "refHigh": 8.2 },
+    "albumin": { "values": [3.70], "unit": "g/dL", "refLow": 3.2, "refHigh": 4.8 }
+  },
+  "kidney": {
+    "dates": ["04-Feb-2026"],
+    "bun": { "values": [5], "unit": "mg/dL", "refLow": 9, "refHigh": 23 },
+    "creatinine": { "values": [0.39], "unit": "mg/dL", "refLow": 0.55, "refHigh": 1.02 },
+    "uricAcid": { "values": [2.7], "unit": "mg/dL", "refLow": 2.7, "refHigh": 6.1 },
+    "sodium": { "values": [139], "unit": "mmol/L", "refLow": 136, "refHigh": 145 },
+    "potassium": { "values": [4.06], "unit": "mmol/L", "refLow": 3.5, "refHigh": 5.1 },
+    "chloride": { "values": [105], "unit": "mmol/L", "refLow": 98, "refHigh": 107 }
+  },
+  "maternalScreening": {
+    "date": "14-Jan-2026",
+    "gestationalAge": "~12 weeks",
+    "freeBetaHCG": { "value": 37.80, "unit": "ng/mL" },
+    "pappA": { "value": 3.200, "unit": "mIU/mL" },
+    "hivScreening": "Non-Reactive",
+    "hbsag": "Non-Reactive",
+    "hcvAntibody": "Non-Reactive",
+    "rpr": "Non-Reactive",
+    "nuchalTranslucency": { "value": 1.10, "unit": "mm", "date": "13-Jan-2026" }
+  },
+  "prescriptions": [
+    {
+      "date": "05-Dec-2025",
+      "week": "6.2 weeks",
+      "doctor": "Dr. Nisha Aggarwal",
+      "clinic": "Avni Clinic",
+      "weight": null,
+      "findings": "USG 6.2 weeks, Hb 11.3, RBS 88, RH-1, TSH 2.3",
+      "drugs": [
+        { "name": "Ecosprin 150mg (Aspirin)", "dosage": "1 tab at night", "duration": "30 days", "instruction": "Have after food" },
+        { "name": "Folicomax (L-Methylfolate, Pyridoxal-5-Phosphate, Methylcobalamin)", "dosage": "1 cap 1 time a day", "duration": "30 days", "instruction": "After food" },
+        { "name": "HCQS 300mg (Hydroxychloroquine)", "dosage": "1 tab", "duration": "30 days", "instruction": "Have before food, IMMEDIATELY BEFORE FOOD" },
+        { "name": "Duphaston 10mg (Dydrogesterone)", "dosage": "1 tab 2 times a day", "duration": "30 days", "instruction": "After food" }
+      ],
+      "investigations": "Beta HCG, ANA, APLA IgG, IgM, LFT, KFT"
+    },
+    {
+      "date": "17-Dec-2025",
+      "week": "~9 weeks",
+      "doctor": "Dr. Nisha Aggarwal",
+      "clinic": "Avni Clinic",
+      "weight": "77 kg",
+      "findings": "USG 9 weeks, Blood Group A+",
+      "drugs": [
+        { "name": "Ecosprin 150mg", "dosage": "1 tab at night", "duration": "30 days", "instruction": "After food" },
+        { "name": "Folicomax", "dosage": "1 cap afternoon", "duration": "30 days", "instruction": "After food" },
+        { "name": "HCQS 300mg", "dosage": "1 tab", "duration": "30 days", "instruction": "Before food" },
+        { "name": "Duphaston 10mg", "dosage": "1 tab evening", "duration": "30 days", "instruction": "After food" },
+        { "name": "Fexacta (Iron Bisglycinate 60mg + Folic Acid)", "dosage": "1 tab morning", "duration": "30 days", "instruction": "After food" },
+        { "name": "Rotacum (Calcium Orotate 1535 + Vit D 2000)", "dosage": "1 tab afternoon", "duration": "30 days", "instruction": "After food" },
+        { "name": "Nutriease Protein Powder with DHA", "dosage": "2 tsp morning + 2 tsp evening", "duration": "30 days", "instruction": "After food, 2 scoops twice daily with milk" },
+        { "name": "SYP SHCAL-D3 (Cholecalciferol 60K)", "dosage": "5ml afternoon, once a week", "duration": "4 weeks", "instruction": "After food" }
+      ],
+      "investigations": "FBS, PP2BS, HbA1c, TFT, LFT",
+      "dietaryAdvice": "No wheat, No milk"
+    },
+    {
+      "date": "16-Jan-2026",
+      "week": "~13 weeks",
+      "doctor": "Dr. Nisha Aggarwal",
+      "clinic": "Avni Clinic",
+      "weight": null,
+      "findings": "Previous prescriptions continued, additional investigations",
+      "drugs": [
+        { "name": "Ecosprin 150mg", "dosage": "1 tab at night", "duration": "30 days", "instruction": "After food" },
+        { "name": "HCQS 300mg", "dosage": "1 tab", "duration": "30 days", "instruction": "Before food" },
+        { "name": "Duphaston 10mg", "dosage": "1 tab", "duration": "30 days", "instruction": "After food" },
+        { "name": "Tab Fexacta", "dosage": "1 tab morning", "duration": "30 days", "instruction": "After food" },
+        { "name": "Tab Pentavit", "dosage": "1 tab morning, 2 tabs evening", "duration": "30 days", "instruction": "After food" },
+        { "name": "SYP SHCAL-D3", "dosage": "1 tab in evening, 2 tsp after food", "duration": null, "instruction": "After food" }
+      ],
+      "investigations": "Kabitote (GRD)/Therappin, Quadruple Marker",
+      "followUp": "4/d"
+    },
+    {
+      "date": "03-Feb-2026",
+      "week": "15W 1D",
+      "doctor": "Dr. Nisha Aggarwal",
+      "clinic": "Avni Clinic",
+      "weight": "74.8 kg",
+      "findings": "G3P1L0A1, LMP 20-10-2025, EDD 27-07-2026, HIV Negative, HBsAg Negative, HCV Negative, VDRL Negative, Double Marker Negative, Flu Vaccine given 05-01-2026",
+      "drugs": [
+        { "name": "Ecosprin 150mg", "dosage": "1 tab at night", "duration": "30 days", "instruction": "After food" },
+        { "name": "HCQS 300mg", "dosage": "1 tab", "duration": "30 days", "instruction": "Before food, IMMEDIATELY BEFORE FOOD" },
+        { "name": "Duphaston 10mg", "dosage": "1 tab evening", "duration": "30 days", "instruction": "After food" },
+        { "name": "Fexacta (2 Strips)", "dosage": "1 tab morning", "duration": "30 days", "instruction": "Have after food" },
+        { "name": "Rotacum (2 Strips)", "dosage": "1 tab afternoon", "duration": "30 days", "instruction": "Have after food" },
+        { "name": "Nutriease Protein Powder with DHA", "dosage": "2 tsp morning, 2 tsp evening, 2 scoops twice daily with milk", "duration": "30 days", "instruction": "After food" },
+        { "name": "SYP SHCAL-D3 (60K, 28 bottles)", "dosage": "5ml afternoon, once a week", "duration": "4 weeks", "instruction": "After food" }
+      ],
+      "investigations": "FBS, PP2BS, HbA1c, TFT, LFT"
+    },
+    {
+      "date": "27-Feb-2026",
+      "week": "~18 weeks",
+      "doctor": "Dr. Nisha Aggarwal",
+      "clinic": "Avni Clinic",
+      "weight": "74 kg",
+      "findings": "Hb 10.2g, LMP 20-10-2025, EDD 27-07-2026, All serology negative",
+      "drugs": [
+        { "name": "Ecosprin 150mg", "dosage": "1 tab at night", "duration": "30 days", "instruction": "After food" },
+        { "name": "HCQS 300mg", "dosage": "1 tab", "duration": "30 days", "instruction": "Before food" },
+        { "name": "Duphaston 10mg", "dosage": "1 tab evening", "duration": "30 days", "instruction": "After food" },
+        { "name": "Fexacta", "dosage": "1 tab morning", "duration": "30 days", "instruction": "After food" },
+        { "name": "Rotacum", "dosage": "1 tab afternoon", "duration": "30 days", "instruction": "After food" },
+        { "name": "Nutriease Protein Powder", "dosage": "2 tsp morning, 2 tsp evening", "duration": "30 days", "instruction": "After food" },
+        { "name": "Pentavit", "dosage": "1 tab morning, evening", "duration": "30 days", "instruction": "After food" }
+      ],
+      "investigations": "USG Level II, Quadruple Marker"
+    },
+    {
+      "date": "10-Mar-2026",
+      "week": "~20 weeks",
+      "doctor": "Dr. Nisha Aggarwal",
+      "clinic": "Avni Clinic",
+      "weight": "76 kg",
+      "findings": "LMP 20-10-2025, EDD 27-07-2026, All markers negative, APLA negative (01-2026)",
+      "drugs": [
+        { "name": "Tab Fexacta 2", "dosage": "1 tab", "duration": "30 days", "instruction": "Before food, IMMEDIATELY BEFORE FOOD" },
+        { "name": "Ecosprin 150mg", "dosage": "1 tab at night", "duration": "30 days", "instruction": "After food" },
+        { "name": "Folicomax", "dosage": "1 tab morning", "duration": "30 days", "instruction": "After food" },
+        { "name": "Rotacum", "dosage": "1 tab afternoon", "duration": "30 days", "instruction": "After food" },
+        { "name": "Nutriease Protein Powder", "dosage": "2 scoops morning, 2 scoops evening", "duration": "30 days", "instruction": "After food" },
+        { "name": "DIP SHCAL-D3 (5ML, 60000 IU)", "dosage": "1 tab morning, evening", "duration": "30 days", "instruction": "After food" },
+        { "name": "MEGA CV", "dosage": "1 tab morning, evening", "duration": "30 days", "instruction": "After food" }
+      ],
+      "investigations": "CFTS, TG plan, HbA1c, Fetal Scan",
+      "followUp": "Diet + Exercise advised"
+    }
+  ],
+  "ultrasounds": [
+    {
+      "date": "26-Oct-2024",
+      "type": "Pelvic Ultrasound (Pre-pregnancy)",
+      "facility": "Pratham Diagnostics",
+      "doctor": "Dr. Sandeep Kumar",
+      "findings": "Well-defined round to oval hypoechoic mass lesion 35x35x28mm in right iliac fossa. Uterus anteverted, normal. Endometrial thickness 6.0mm. Both ovaries normal.",
+      "impression": "Mass lesion in right iliac fossa closely associated with adjacent bowel loops — recommended CECT/25MRI Abdomen for further evaluation."
+    },
+    {
+      "date": "04-Dec-2025",
+      "type": "USG Early Pregnancy",
+      "facility": "The Ultrasound Centre, Gurugram",
+      "doctor": "Dr. Lovina Singh",
+      "gestationalAge": "6 weeks 3 days",
+      "findings": "Single well-defined gestational sac (GSD 17.6mm). Yolk sac present. Crown-rump length 3.5mm. Cardiac activity seen — HR 111 bpm (needs re-evaluation on subsequent scan). No obvious subchorionic collection.",
+      "impression": "Single live intra-uterine pregnancy of ~6 weeks 0 day. EDD by USG 30-07-2026."
+    },
+    {
+      "date": "21-Dec-2025",
+      "type": "USG (8 weeks)",
+      "facility": "Miracles Hospital",
+      "doctor": "Dr. Alka Saxena",
+      "gestationalAge": "8 weeks 1 day",
+      "findings": "Single gestational sac of normal size. Crown-rump length 18.1mm (8 weeks 1 day). Fetal cardiac activity present. No obvious fetal anomaly seen at this stage.",
+      "impression": "Early single live intrauterine fetus of about 8 weeks 1 day. EDD sonographically 18-08-2026."
+    },
+    {
+      "date": "13-Jan-2026",
+      "type": "USG Level I (NT Scan)",
+      "facility": "The Ultrasound Centre, Gurugram",
+      "doctor": "Dr. Lovina Singh",
+      "gestationalAge": "11 weeks 6 days",
+      "findings": "Single live intrauterine fetus in changing lie. Fetal heart rate 152 bpm. Crown-rump length 5.01cm (11 weeks 6 days). Nuchal Translucency 1.10mm (normal). Nasal bone visualized. All four limbs seen. Cardiac tricuspid valve shows no regurgitation. Intra-cranial translucency normally visualized. Maternal uterine arteries — normal flow velocities.",
+      "impression": "Single live intrauterine fetus of about 11 weeks 6 days maturity. CNL EDD by USG 28-12-2025."
+    },
+    {
+      "date": "02-Mar-2026",
+      "type": "USG Level II (Anomaly Scan)",
+      "facility": "The Ultrasound Centre, Gurugram",
+      "doctor": "Dr. Lovina Singh",
+      "gestationalAge": "18 weeks 6 days",
+      "findings": "Fatty habitus — limited evaluation. Fetal heart rate regular at 150 bpm. Placenta posterior, lower end away from OS. Cervical length normal (3.59cm). Detailed anatomical survey — head, face, upper/lower lip, spine, stomach, kidneys, bladder, heart 4-chamber, diaphragm, cord insertion — all normal. BPD 4.54cm (19w1d), HC 15.6cm (18w4d), FL 2.7cm (18w4d), AC 14.21cm. Estimated Fetal Weight 256g.",
+      "impression": "Single live intrauterine fetus of about 18 weeks 6 days. EDD by USG 26-07-2026. No obvious fetal anomaly detected. Fatty habitus limited thorough evaluation — follow-up recommended.",
+      "biophysical": {
+        "bpd": "4.54 cm (19w1d)",
+        "hc": "15.6 cm (18w4d)",
+        "fl": "2.7 cm (18w4d)",
+        "ac": "14.21 cm",
+        "efw": "256g"
+      }
+    }
+  ]
+}

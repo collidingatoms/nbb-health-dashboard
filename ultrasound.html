@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultrasounds — NBB Health Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Roboto', sans-serif;
+            background-color: #FDF2F8;
+            color: #202124;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background: white;
+            border-bottom: 1px solid #E8EAED;
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(60, 64, 67, 0.12);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #BE185D;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #5F6368;
+            font-weight: 500;
+            font-size: 14px;
+            transition: color 0.2s ease;
+            border-bottom: 3px solid transparent;
+            padding-bottom: 8px;
+        }
+
+        .nav-links a:hover {
+            color: #BE185D;
+        }
+
+        .nav-links a.active {
+            color: #BE185D;
+            border-bottom-color: #BE185D;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header Section */
+        .header {
+            margin-bottom: 48px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #BE185D;
+            margin-bottom: 16px;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: #5F6368;
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Growth Chart Section */
+        .chart-section {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 48px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .chart-section h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #202124;
+            margin-bottom: 24px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-bottom: 32px;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .small-chart {
+            position: relative;
+            height: 250px;
+        }
+
+        /* Cards Section */
+        .scans-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #202124;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .scan-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-left: 6px solid #BE185D;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .scan-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .scan-card.major-milestone {
+            border-left-color: #A142F4;
+            background: linear-gradient(135deg, rgba(161, 66, 244, 0.02) 0%, transparent 100%);
+        }
+
+        .scan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .scan-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #202124;
+        }
+
+        .scan-date {
+            font-size: 14px;
+            color: #5F6368;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.pre-pregnancy {
+            background: #E8EAED;
+            color: #5F6368;
+        }
+
+        .status-badge.milestone {
+            background: #E6F4EA;
+            color: #137333;
+        }
+
+        .facility-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #F8F9FA;
+            border-radius: 8px;
+        }
+
+        .info-item {
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #202124;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            color: #5F6368;
+        }
+
+        /* Findings Grid */
+        .findings-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #202124;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+
+        .findings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .finding-item {
+            padding: 12px 16px;
+            background: #E8F0FE;
+            border-radius: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .finding-item.normal {
+            background: #E6F4EA;
+            color: #137333;
+        }
+
+        .finding-item.highlight {
+            background: #FEF7E0;
+            color: #974C17;
+        }
+
+        .finding-icon {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* Biometry Table */
+        .biometry-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-size: 14px;
+        }
+
+        .biometry-table th {
+            background: #F8F9FA;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid #E8EAED;
+            color: #202124;
+        }
+
+        .biometry-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E8EAED;
+        }
+
+        .biometry-table tr:hover {
+            background: #F8F9FA;
+        }
+
+        /* Expert Notes */
+        .expert-note {
+            margin-top: 24px;
+            padding: 16px;
+            background: linear-gradient(135deg, #E8F0FE 0%, #F0E6FF 100%);
+            border-left: 4px solid #7C3AED;
+            border-radius: 8px;
+        }
+
+        .expert-note-title {
+            font-weight: 700;
+            color: #5E35B1;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .expert-note-title::before {
+            content: "💡";
+            font-size: 18px;
+        }
+
+        .expert-note-text {
+            color: #3F2C70;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .expert-note-expanded {
+            display: none;
+            color: #3F2C70;
+            font-size: 14px;
+            line-height: 1.6;
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+
+        .expert-note-expanded.show {
+            display: block;
+        }
+
+        .toggle-btn {
+            background: #7C3AED;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-top: 8px;
+        }
+
+        .toggle-btn:hover {
+            background: #6D28D9;
+        }
+
+        /* Image Placeholder */
+        .image-placeholder {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #F8BAD3 0%, #E8D5F2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 24px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-placeholder::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .image-placeholder-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .placeholder-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(190, 24, 93, 0.8);
+        }
+
+        .placeholder-date {
+            font-size: 12px;
+            color: rgba(190, 24, 93, 0.6);
+            margin-top: 4px;
+        }
+
+        /* Test Results Cards */
+        .test-results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .test-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border-top: 4px solid #34A853;
+        }
+
+        .test-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #202124;
+            margin-bottom: 16px;
+        }
+
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #E8EAED;
+            font-size: 14px;
+        }
+
+        .test-item:last-child {
+            border-bottom: none;
+        }
+
+        .test-label {
+            color: #5F6368;
+        }
+
+        .test-value {
+            font-weight: 600;
+            color: #34A853;
+        }
+
+        .test-value.normal {
+            background: #E6F4EA;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Footer */
+        footer {
+            background: white;
+            border-top: 1px solid #E8EAED;
+            padding: 24px;
+            margin-top: 64px;
+            text-align: center;
+            color: #5F6368;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 16px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .container {
+                padding: 24px 16px;
+            }
+
+            .scan-card {
+                padding: 20px;
+            }
+
+            .facility-info {
+                grid-template-columns: 1fr;
+            }
+
+            .findings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .image-placeholder {
+                height: 200px;
+            }
+        }
+
+        /* Accessibility */
+        button:focus, a:focus {
+            outline: 2px solid #BE185D;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="nav-title">NBB Health Dashboard</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Blood Work</a></li>
+                <li><a href="pregnancy.html">Pregnancy</a></li>
+                <li><a href="ultrasound.html" class="active">Ultrasounds</a></li>
+                <li><a href="nutrition.html">Diet & Nutrition</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Baby's Growth Journey</h1>
+            <p>Baby's growth journey through ultrasound — from a tiny heartbeat at 6 weeks to a fully formed baby at 18 weeks.</p>
+        </div>
+
+        <!-- Growth Chart Section -->
+        <div class="chart-section">
+            <h2>Fetal Growth Measurements</h2>
+
+            <div class="chart-wrapper">
+                <canvas id="crlChart"></canvas>
+            </div>
+
+            <div class="chart-grid">
+                <div class="small-chart">
+                    <canvas id="heartRateChart"></canvas>
+                </div>
+                <div class="small-chart">
+                    <canvas id="headCircumferenceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scan Cards -->
+        <h2 class="scans-title">Ultrasound Scans</h2>
+
+        <!-- Pre-Pregnancy Scan -->
+        <div class="scan-card">
+            <div class="scan-header">
+                <div>
+                    <div class="scan-title">Pre-Pregnancy Pelvic Scan</div>
+                    <div class="scan-date">26 October 2024</div>
+                </div>
+                <span class="status-badge pre-pregnancy">Pre-Pregnancy</span>
+            </div>
+
+            <div class="facility-info">
+                <div class="info-item">
+                    <span class="info-label">Facility</span>
+                    <span class="info-value">Pratham Diagnostics</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Doctor</span>
+                    <span class="info-value">Dr. Sandeep Kumar</span>
+                </div>
+            </div>
+
+            <div class="findings-title">Key Finding</div>
+            <div class="finding-item highlight">
+                <span class="finding-icon">⚠️</span>
+                <span>Mass lesion in right iliac fossa (35×35×28mm)</span>
+            </div>
+
+            <p style="margin-top: 16px; color: #5F6368; font-size: 14px;">
+                <strong>Impression:</strong> Recommended CECT/MRI Abdomen for further evaluation
+            </p>
+
+            <div class="expert-note">
+                <div class="expert-note-title">Expert Note</div>
+                <div class="expert-note-text">
+                    An incidental finding of a mass near the bowel. This should be followed up postpartum with an MRI. During pregnancy, this is being monitored and doesn't appear to be affecting the pregnancy.
+                </div>
+            </div>
+        </div>
+
+        <!-- First Scan (6w3d) -->
+        <div class="scan-card">
+            <div class="scan-header">
+                <div>
+                    <div class="scan-title">First Ultrasound</div>
+                    <div class="scan-date">04 December 2025 — 6 weeks 3 days</div>
+                </div>
+                <span class="status-badge milestone">Milestone</span>
+            </div>
+
+            <div class="facility-info">
+                <div class="info-item">
+                    <span class="info-label">Facility</span>
+                    <span class="info-value">The Ultrasound Centre, Gurugram</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Doctor</span>
+                    <span class="info-value">Dr. Lovina Singh</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Gestational Age</span>
+                    <span class="info-value">6 weeks 3 days</span>
+                </div>
+            </div>
+
+            <div class="findings-title">Key Findings</div>
+            <div class="findings-grid">
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>GSD:</strong> 17.6mm (well-defined)</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>CRL:</strong> 3.5mm</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Yolk sac:</strong> Present</span>
+                </div>
+                <div class="finding-item highlight">
+                    <span class="finding-icon">⚠️</span>
+                    <span><strong>Heart rate:</strong> 111 bpm (to be re-evaluated)</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Subchorionic collection:</strong> None</span>
+                </div>
+            </div>
+
+            <p style="color: #5F6368; font-size: 14px;">
+                <strong>Impression:</strong> Single live intra-uterine pregnancy
+            </p>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-content">
+                    <div class="placeholder-icon">❤️</div>
+                    <div class="placeholder-text">Scan Image</div>
+                    <div class="placeholder-date">6w3d</div>
+                </div>
+            </div>
+
+            <div class="expert-note">
+                <div class="expert-note-title">Expert Note</div>
+                <div class="expert-note-text">
+                    <strong>Summary:</strong> First confirmation of pregnancy! Heart rate of 111 bpm was noted as needing re-evaluation — at 6 weeks, heart rates between 100–120 bpm are common and typically accelerate to 150–170 bpm by 8–9 weeks.
+                </div>
+                <button class="toggle-btn" onclick="toggleExpanded(this)">Read More</button>
+                <div class="expert-note-expanded">
+                    <p><strong>What it means:</strong></p>
+                    <p>Early pregnancy ultrasound findings at 6 weeks confirm a viable pregnancy. The gestational sac size of 17.6mm is appropriate for gestational age. The crown-rump length measures the fetus from head to bottom and at 3.5mm is on track. The presence of a yolk sac is critical — it confirms an intrauterine pregnancy (not ectopic) and supports fetal development. </p>
+                    <p style="margin-top: 12px;"><strong>About the heart rate:</strong> Early fetal heart rates are typically lower and increase as pregnancy progresses. A heart rate of 111 bpm at 6 weeks is within the normal range, though on the lower end. By 8–9 weeks, the heart rate typically reaches 150–170 bpm. This is why a follow-up scan was recommended — to confirm the heart rate accelerates appropriately and continues to be reassuring given your APLA history.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Scan (8w1d) -->
+        <div class="scan-card">
+            <div class="scan-header">
+                <div>
+                    <div class="scan-title">Confirmation Scan</div>
+                    <div class="scan-date">21 December 2025 — 8 weeks 1 day</div>
+                </div>
+                <span class="status-badge milestone">Milestone</span>
+            </div>
+
+            <div class="facility-info">
+                <div class="info-item">
+                    <span class="info-label">Facility</span>
+                    <span class="info-value">Miracles Hospital</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Doctor</span>
+                    <span class="info-value">Dr. Alka Saxena</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Gestational Age</span>
+                    <span class="info-value">8 weeks 1 day</span>
+                </div>
+            </div>
+
+            <div class="findings-title">Key Findings</div>
+            <div class="findings-grid">
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>CRL:</strong> 18.1mm (8w1d)</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Cardiac activity:</strong> Present</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Anomaly screen:</strong> No anomaly at this stage</span>
+                </div>
+            </div>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-content">
+                    <div class="placeholder-icon">❤️</div>
+                    <div class="placeholder-text">Scan Image</div>
+                    <div class="placeholder-date">8w1d</div>
+                </div>
+            </div>
+
+            <div class="expert-note">
+                <div class="expert-note-title">Expert Note</div>
+                <div class="expert-note-text">
+                    <strong>Summary:</strong> Excellent growth! CRL of 18.1mm is right on track. The fact that cardiac activity is now established is very reassuring, especially given your APLA history.
+                </div>
+            </div>
+        </div>
+
+        <!-- NT Scan (11w6d) -->
+        <div class="scan-card major-milestone">
+            <div class="scan-header">
+                <div>
+                    <div class="scan-title">NT Scan (Level I Screening)</div>
+                    <div class="scan-date">13 January 2026 — 11 weeks 6 days</div>
+                </div>
+                <span class="status-badge milestone">Major Milestone</span>
+            </div>
+
+            <div class="facility-info">
+                <div class="info-item">
+                    <span class="info-label">Facility</span>
+                    <span class="info-value">The Ultrasound Centre, Gurugram</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Doctor</span>
+                    <span class="info-value">Dr. Lovina Singh</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Gestational Age</span>
+                    <span class="info-value">11 weeks 6 days</span>
+                </div>
+            </div>
+
+            <div class="findings-title">Key Findings</div>
+            <div class="findings-grid">
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>CRL:</strong> 50.1mm (11w6d)</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Nuchal Translucency:</strong> 1.10mm (Normal)</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Nasal bone:</strong> Visualized</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Heart rate:</strong> 152 bpm</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Four limbs:</strong> Seen</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Tricuspid valve:</strong> No regurgitation</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Intra-cranial translucency:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Maternal uterine arteries:</strong> Normal flow</span>
+                </div>
+            </div>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-content">
+                    <div class="placeholder-icon">👶</div>
+                    <div class="placeholder-text">NT Scan Image</div>
+                    <div class="placeholder-date">11w6d</div>
+                </div>
+            </div>
+
+            <div class="expert-note">
+                <div class="expert-note-title">Expert Note</div>
+                <div class="expert-note-text">
+                    <strong>Summary:</strong> This is the most important screening scan. Nuchal Translucency of 1.10mm is well within normal limits (&lt; 3.5mm). Combined with visible nasal bone, normal tricuspid valve, and normal ductus venosus — these findings significantly reduce the risk of chromosomal abnormalities including Down syndrome.
+                </div>
+                <button class="toggle-btn" onclick="toggleExpanded(this)">Read More</button>
+                <div class="expert-note-expanded">
+                    <p><strong>What each finding means:</strong></p>
+                    <p><strong>Nuchal Translucency (NT):</strong> This is the thickness of the tissue at the back of the baby's neck measured at 11–14 weeks. An NT ≤ 3.5mm is considered normal. Your baby's measurement of 1.10mm is excellent and significantly below the threshold. Thickened NT is associated with increased risk of Down syndrome (Trisomy 21), but a normal NT substantially reduces this risk.</p>
+                    <p style="margin-top: 12px;"><strong>Nasal bone:</strong> The presence of a visible nasal bone is another good marker. An absent or hypoplastic nasal bone can be associated with chromosomal abnormalities. Your baby's clearly visualized nasal bone is reassuring.</p>
+                    <p style="margin-top: 12px;"><strong>Tricuspid valve and ductus venosus:</strong> These cardiac Doppler assessments look at blood flow patterns. Abnormal patterns can suggest chromosomal issues. Your baby's normal findings are very reassuring.</p>
+                    <p style="margin-top: 12px;"><strong>Combined risk assessment:</strong> The NT scan is typically combined with maternal serum screening (the double marker test done 1 day later) to calculate an overall risk for chromosomal abnormalities. Your excellent NT measurement means that even without the serum markers, the risk of Down syndrome and other trisomies is significantly reduced. When combined with your double marker results, the risk is extremely low.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Double Marker Results -->
+        <div class="test-results-grid">
+            <div class="test-card">
+                <h3>Double Marker Screening (14 Jan 2026)</h3>
+                <div class="test-item">
+                    <span class="test-label">Free Beta HCG</span>
+                    <span class="test-value normal">37.80 ng/mL</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-label">PAPP-A</span>
+                    <span class="test-value normal">3.200 mIU/mL</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-label">NT Measurement</span>
+                    <span class="test-value normal">1.10mm</span>
+                </div>
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #E8EAED;">
+                    <p style="font-size: 13px; color: #202124; font-weight: 600; margin-bottom: 8px;">Combined Interpretation</p>
+                    <p style="font-size: 13px; color: #34A853; font-weight: 600;">Low risk for Trisomy 21, 18, 13</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anomaly Scan (18w6d) -->
+        <div class="scan-card major-milestone">
+            <div class="scan-header">
+                <div>
+                    <div class="scan-title">Anomaly Scan (Level II Anatomy Survey)</div>
+                    <div class="scan-date">02 March 2026 — 18 weeks 6 days</div>
+                </div>
+                <span class="status-badge milestone">Major Milestone</span>
+            </div>
+
+            <div class="facility-info">
+                <div class="info-item">
+                    <span class="info-label">Facility</span>
+                    <span class="info-value">The Ultrasound Centre, Gurugram</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Doctor</span>
+                    <span class="info-value">Dr. Lovina Singh</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Gestational Age</span>
+                    <span class="info-value">18 weeks 6 days</span>
+                </div>
+            </div>
+
+            <div class="findings-title">Anatomical Checklist</div>
+            <div class="findings-grid">
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Head:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Face & Lips:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Spine:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Heart (4-chamber):</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Stomach:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Kidneys:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Bladder:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Cord insertion:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Diaphragm:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Upper limbs:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Lower limbs:</strong> Normal</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Placenta:</strong> Posterior, away from OS</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Cervical length:</strong> 3.59cm (normal)</span>
+                </div>
+                <div class="finding-item normal">
+                    <span class="finding-icon">✓</span>
+                    <span><strong>Heart rate:</strong> 150 bpm</span>
+                </div>
+            </div>
+
+            <div class="findings-title">Biometry (Fetal Measurements)</div>
+            <table class="biometry-table">
+                <thead>
+                    <tr>
+                        <th>Measurement</th>
+                        <th>Value</th>
+                        <th>Equivalent GA</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Biparietal Diameter (BPD)</td>
+                        <td>45.4mm</td>
+                        <td>19w1d</td>
+                        <td>✓ Normal</td>
+                    </tr>
+                    <tr>
+                        <td>Head Circumference (HC)</td>
+                        <td>156mm</td>
+                        <td>18w4d</td>
+                        <td>✓ Normal</td>
+                    </tr>
+                    <tr>
+                        <td>Femur Length (FL)</td>
+                        <td>27mm</td>
+                        <td>18w4d</td>
+                        <td>✓ Normal</td>
+                    </tr>
+                    <tr>
+                        <td>Abdominal Circumference (AC)</td>
+                        <td>142.1mm</td>
+                        <td>—</td>
+                        <td>✓ Normal</td>
+                    </tr>
+                    <tr>
+                        <td>Estimated Fetal Weight (EFW)</td>
+                        <td>256g</td>
+                        <td>~38th percentile</td>
+                        <td>✓ Appropriate for GA</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="color: #5F6368; font-size: 14px; margin-top: 16px;">
+                <strong>Note:</strong> Fatty habitus limited thorough evaluation of some structures. Follow-up scan recommended for completeness.
+            </p>
+
+            <div class="image-placeholder">
+                <div class="image-placeholder-content">
+                    <div class="placeholder-icon">👶</div>
+                    <div class="placeholder-text">Anatomy Scan Image</div>
+                    <div class="placeholder-date">18w6d</div>
+                </div>
+            </div>
+
+            <div class="expert-note">
+                <div class="expert-note-title">Expert Note</div>
+                <div class="expert-note-text">
+                    <strong>Summary:</strong> Comprehensive anatomy survey shows NO anomalies detected — all major organs and structures are developing normally. Estimated fetal weight 256g is appropriate for gestational age. The note about fatty habitus means the maternal body composition made some views slightly difficult — a follow-up scan is recommended for completeness.
+                </div>
+                <button class="toggle-btn" onclick="toggleExpanded(this)">Read More</button>
+                <div class="expert-note-expanded">
+                    <p><strong>What each anatomical check means:</strong></p>
+                    <p>The Level II anatomy survey is a comprehensive checklist of all major fetal structures. Each structure is evaluated for proper size, position, and function:</p>
+                    <ul style="margin-left: 20px; margin-top: 8px; color: #3F2C70;">
+                        <li><strong>Head, face, lips, spine:</strong> Check for neural tube defects, cleft lip/palate, and spinal issues like spina bifida.</li>
+                        <li><strong>Heart (4-chamber):</strong> Assess cardiac chambers and septa for congenital heart defects.</li>
+                        <li><strong>Stomach, kidneys, bladder:</strong> Check for proper organ development and function.</li>
+                        <li><strong>Limbs:</strong> Verify all long bones are present, properly positioned, and of normal length.</li>
+                        <li><strong>Placenta and cord:</strong> Assess placental location (posterior placement away from cervical os is ideal), cord insertion, and umbilical artery flow.</li>
+                        <li><strong>Cervical length:</strong> At 18 weeks, normal cervical length is typically 3.5–4.5cm. Your 3.59cm measurement is perfect and indicates low risk of preterm delivery.</li>
+                    </ul>
+                    <p style="margin-top: 12px;"><strong>About biometry:</strong> The measurements (BPD, HC, FL, AC) are plotted on standardized growth curves. Your baby's measurements are consistent with 18–19 weeks gestation, confirming your dating and showing normal growth velocity. The estimated fetal weight of 256g at the 38th percentile is ideal — not too big, not too small.</p>
+                    <p style="margin-top: 12px;"><strong>Regarding maternal fatty habitus:</strong> In patients with a higher BMI or fatty abdominal tissues, ultrasound penetration can be slightly reduced, making some fetal views (especially deep cardiac structures) harder to visualize optimally. This is why a follow-up scan at 28–30 weeks was recommended — to confirm the same reassuring findings and have clearer views if needed, particularly to rule out any subtle cardiac issues.</p>
+                    <p style="margin-top: 12px;"><strong>Next steps:</strong> A growth scan at 28–30 weeks will confirm continued normal development, assess amniotic fluid volume, and monitor placental position and blood flow patterns.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Serology Screening -->
+        <div class="test-results-grid">
+            <div class="test-card">
+                <h3>Infectious Serology Screening</h3>
+                <div class="test-item">
+                    <span class="test-label">HIV</span>
+                    <span class="test-value normal">Non-Reactive</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-label">HBsAg (Hepatitis B)</span>
+                    <span class="test-value normal">Non-Reactive</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-label">HCV (Hepatitis C)</span>
+                    <span class="test-value normal">Non-Reactive</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-label">RPR (Syphilis)</span>
+                    <span class="test-value normal">Non-Reactive</span>
+                </div>
+                <div class="test-item">
+                    <span class="test-label">VDRL (Syphilis)</span>
+                    <span class="test-value normal">Negative</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>NBB Health Dashboard — Last updated: 13 April 2026 | Not a substitute for professional medical advice</p>
+        <p style="margin-top: 8px; font-size: 11px; color: #9AA0A6;">
+            Note: Image placeholders are styled to show scan dates and gestational ages. To add actual ultrasound images, place them in an <code style="background: #F8F9FA; padding: 2px 6px; border-radius: 3px;">images/</code> folder and update the image src attributes in the HTML.
+        </p>
+    </footer>
+
+    <script>
+        // Toggle expert notes
+        function toggleExpanded(button) {
+            const expanded = button.nextElementSibling;
+            expanded.classList.toggle('show');
+            button.textContent = expanded.classList.contains('show') ? 'Read Less' : 'Read More';
+        }
+
+        // Chart.js Charts
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        font: { family: "'Roboto', sans-serif", size: 12 },
+                        color: '#5F6368'
+                    }
+                },
+                filler: {
+                    propagate: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: { family: "'Roboto', sans-serif", size: 11 },
+                        color: '#5F6368'
+                    },
+                    grid: {
+                        color: 'rgba(232, 234, 237, 0.3)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: { family: "'Roboto', sans-serif", size: 11 },
+                        color: '#5F6368'
+                    },
+                    grid: {
+                        color: 'rgba(232, 234, 237, 0.3)'
+                    }
+                }
+            }
+        };
+
+        // CRL Growth Chart
+        const crlCtx = document.getElementById('crlChart').getContext('2d');
+        new Chart(crlCtx, {
+            type: 'line',
+            data: {
+                labels: ['6w3d', '8w1d', '11w6d', '18w6d'],
+                datasets: [
+                    {
+                        label: 'Crown-Rump Length (mm)',
+                        data: [3.5, 18.1, 50.1, null],
+                        borderColor: '#BE185D',
+                        backgroundColor: 'rgba(190, 24, 93, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#BE185D',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        spanGaps: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Head Circumference (mm)',
+                        data: [null, null, null, 156],
+                        borderColor: '#7C3AED',
+                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#7C3AED',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        spanGaps: true,
+                        yAxisID: 'y'
+                    }
+                ]
+            },
+            options: {
+                ...chartOptions,
+                plugins: {
+                    ...chartOptions.plugins,
+                    title: {
+                        display: true,
+                        text: 'Growth Trajectory',
+                        font: { family: "'Roboto', sans-serif", size: 14, weight: 'bold' },
+                        color: '#202124'
+                    }
+                }
+            }
+        });
+
+        // Heart Rate Chart
+        const hrCtx = document.getElementById('heartRateChart').getContext('2d');
+        new Chart(hrCtx, {
+            type: 'bar',
+            data: {
+                labels: ['6w3d', '8w1d', '11w6d', '18w6d'],
+                datasets: [
+                    {
+                        label: 'Heart Rate (bpm)',
+                        data: [111, null, 152, 150],
+                        backgroundColor: ['#EA4335', 'rgba(0,0,0,0)', '#34A853', '#34A853'],
+                        borderColor: ['#C5221F', 'transparent', '#137333', '#137333'],
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                ...chartOptions,
+                indexAxis: undefined,
+                plugins: {
+                    ...chartOptions.plugins,
+                    title: {
+                        display: true,
+                        text: 'Fetal Heart Rate',
+                        font: { family: "'Roboto', sans-serif", size: 14, weight: 'bold' },
+                        color: '#202124'
+                    }
+                }
+            }
+        });
+
+        // Head Circumference Growth
+        const hcCtx = document.getElementById('headCircumferenceChart').getContext('2d');
+        new Chart(hcCtx, {
+            type: 'line',
+            data: {
+                labels: ['11w6d', '18w6d'],
+                datasets: [
+                    {
+                        label: 'HC (mm) vs Percentiles',
+                        data: [null, 156],
+                        borderColor: '#7C3AED',
+                        backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#7C3AED',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: '50th Percentile',
+                        data: [null, 155],
+                        borderColor: '#5F6368',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                ...chartOptions,
+                plugins: {
+                    ...chartOptions.plugins,
+                    title: {
+                        display: true,
+                        text: 'Head Circumference Growth',
+                        font: { family: "'Roboto', sans-serif", size: 14, weight: 'bold' },
+                        color: '#202124'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
