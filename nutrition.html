@@ -3,1283 +3,715 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diet & Nutrition - NBB Health Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta name="description" content="Personal health dashboard for Nikita Bhagat — daily supplement schedule, nutrition targets, and meal references for the current pregnancy.">
+    <title>NBB Health Dashboard — Nutrition</title>
+
+    <!-- Shared design system (single source of truth — see assets/css/pulse-dashboard.css) -->
+    <link rel="stylesheet" href="assets/css/pulse-dashboard.css">
+
+    <!-- Page-specific styles. Kept minimal; only what the shared sheet does not cover. -->
     <style>
-        * {
+        /* Pill schedule mini-grid in NOW band — three rows of (time chip + drug list) */
+        .pill-schedule {
+            display: grid;
+            grid-template-columns: 110px 1fr;
+            row-gap: var(--s-2);
+            column-gap: var(--s-3);
+            margin-top: var(--s-3);
+            font-size: 14px;
+        }
+        .pill-schedule__time {
+            font-family: var(--font-sans);
+            font-size: 11px;
+            color: var(--ink-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding-top: 2px;
+        }
+        .pill-schedule__drugs { color: var(--ink-primary); }
+
+        /* Hydration glass row (decorative reference, no per-day input today) */
+        .glass-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: var(--s-3);
+        }
+        .glass {
+            width: 18px;
+            height: 26px;
+            border: 1.5px solid var(--ink-tertiary);
+            border-radius: 3px;
+            background: transparent;
+        }
+        .glass.is-filled { background: var(--sage); border-color: var(--sage); }
+
+        /* Iron-rich foods two-column compact list */
+        .food-list {
+            list-style: none;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #FDF2F8;
-            color: #202124;
-            line-height: 1.6;
-        }
-
-        /* Navigation */
-        nav {
-            background-color: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            padding: 0 24px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        nav .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 0;
-        }
-
-        .nav-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #BE185D;
-            letter-spacing: -0.5px;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 32px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #5F6368;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.2s;
-            padding: 8px 0;
-            border-bottom: 2px solid transparent;
-        }
-
-        nav a:hover {
-            color: #BE185D;
-        }
-
-        nav a.active {
-            color: #BE185D;
-            border-bottom-color: #BE185D;
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* Header */
-        .header {
-            padding: 40px 24px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 36px;
-            font-weight: 700;
-            color: #BE185D;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            font-size: 16px;
-            color: #5F6368;
-        }
-
-        .patient-info {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .info-badge {
-            background: linear-gradient(135deg, #FEE7F3 0%, #FCE4EC 100%);
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #880E4F;
-        }
-
-        /* Cards */
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            transition: box-shadow 0.2s;
-        }
-
-        .card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .card h2 {
-            font-size: 22px;
-            font-weight: 700;
-            color: #202124;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .card h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #BE185D;
-            margin-top: 20px;
-            margin-bottom: 12px;
-        }
-
-        /* Grid Layouts */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        /* Restriction Cards */
-        .restriction-card {
-            background: linear-gradient(135deg, #FEE7F3 0%, #FCE4EC 100%);
-            border-left: 4px solid #BE185D;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .restriction-card h4 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #880E4F;
-            margin-bottom: 8px;
-        }
-
-        .restriction-card p {
-            font-size: 14px;
-            color: #5F6368;
-            line-height: 1.6;
-        }
-
-        /* Nutrition Target Cards */
-        .target-card {
-            background: linear-gradient(135deg, #F0F4FF 0%, #EEF2FF 100%);
-            border-left: 4px solid #1A73E8;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .target-card .value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1A73E8;
-            margin: 8px 0;
-        }
-
-        .target-card .label {
-            font-size: 14px;
-            color: #5F6368;
-            font-weight: 500;
-        }
-
-        /* Supplement Schedule */
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-        }
-
-        .schedule-table th {
-            background: #F8F9FA;
-            border: 1px solid #E8EAED;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            color: #202124;
-            font-size: 14px;
-        }
-
-        .schedule-table td {
-            border: 1px solid #E8EAED;
-            padding: 14px 12px;
-            font-size: 14px;
-            color: #5F6368;
-        }
-
-        .schedule-table tr:hover {
-            background-color: #FDF2F8;
-        }
-
-        .time-badge {
-            display: inline-block;
-            background: #E8F0FE;
-            color: #1A73E8;
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .time-badge.morning {
-            background: #FFF4E6;
-            color: #D97706;
-        }
-
-        .time-badge.afternoon {
-            background: #E6F4EA;
-            color: #059669;
-        }
-
-        .time-badge.evening {
-            background: #F3E5F5;
-            color: #7C3AED;
-        }
-
-        .time-badge.weekly {
-            background: #FCE4EC;
-            color: #BE185D;
-        }
-
-        /* Meal Ideas */
-        .meal-category {
-            margin-bottom: 24px;
-        }
-
-        .meal-category h4 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #BE185D;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .meal-list {
-            list-style: none;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 12px;
-        }
-
-        .meal-item {
-            background: #F8F9FA;
-            padding: 16px;
-            border-radius: 8px;
-            border-left: 3px solid #7C3AED;
-            font-size: 14px;
-            color: #5F6368;
-        }
-
-        .meal-item strong {
-            color: #202124;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        /* Iron Rich Foods Chart */
-        .food-chart {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 16px;
-        }
-
-        .food-section h4 {
-            font-size: 15px;
-            font-weight: 600;
-            color: #202124;
-            margin-bottom: 12px;
-        }
-
-        .food-item {
+        .food-list li {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: #F8F9FA;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            font-size: 14px;
+            align-items: baseline;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--hairline);
         }
+        .food-list li:last-child { border-bottom: 0; }
+        .food-list .name { color: var(--ink-primary); font-size: 14px; }
+        .food-list .num  { font-family: var(--font-mono); font-size: 13px; color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
 
-        .food-name {
-            color: #202124;
-            font-weight: 500;
-        }
-
-        .iron-content {
-            color: #BE185D;
-            font-weight: 600;
-            background: #FEE7F3;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        /* Anti-inflammatory Section */
-        .include-exclude {
+        /* Two-column include / avoid list */
+        .twocol {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 16px;
+            gap: var(--s-4);
+            margin-top: var(--s-3);
         }
-
-        .include-list, .exclude-list {
-            padding: 16px;
-            border-radius: 8px;
-        }
-
-        .include-list {
-            background: #E6F4EA;
-        }
-
-        .exclude-list {
-            background: #FECDD3;
-        }
-
-        .include-list h4, .exclude-list h4 {
-            margin-bottom: 12px;
-            font-size: 15px;
-        }
-
-        .include-list h4 {
-            color: #059669;
-        }
-
-        .exclude-list h4 {
-            color: #DC2626;
-        }
-
-        .include-list ul, .exclude-list ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .include-list li, .exclude-list li {
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: #5F6368;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        .include-list li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #059669;
-            font-weight: bold;
-        }
-
-        .exclude-list li:before {
-            content: "✕";
-            position: absolute;
-            left: 0;
-            color: #DC2626;
-            font-weight: bold;
-        }
-
-        /* Vitamin C Pairing */
-        .pairing-box {
-            background: linear-gradient(135deg, #FEF3C7 0%, #FEF08A 100%);
-            border-left: 4px solid #FBBC04;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .pairing-box h4 {
-            color: #92400E;
-            margin-bottom: 12px;
-        }
-
-        .pairing-box ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .pairing-box li {
-            font-size: 14px;
-            color: #5F6368;
-            margin-bottom: 8px;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        .pairing-box li:before {
-            content: "◆";
-            position: absolute;
-            left: 0;
-            color: #FBBC04;
-        }
-
-        /* Hydration Tracker */
-        .hydration-tracker {
-            background: linear-gradient(135deg, #E0F2FE 0%, #DBEAFE 100%);
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            border-left: 4px solid #0EA5E9;
-        }
-
-        .hydration-tracker .target {
-            font-size: 28px;
-            font-weight: 700;
-            color: #0369A1;
-            margin: 12px 0;
-        }
-
-        .hydration-tracker .label {
-            font-size: 14px;
-            color: #5F6368;
-            margin-bottom: 16px;
-        }
-
-        .water-glasses {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .glass {
-            width: 28px;
-            height: 40px;
-            border: 2px solid #0EA5E9;
-            border-radius: 4px;
-            background: white;
-        }
-
-        .glass.filled {
-            background: #0EA5E9;
-        }
-
-        .hydration-tips {
+        .twocol h3 {
+            font-family: var(--font-sans);
             font-size: 13px;
-            color: #5F6368;
-            text-align: left;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(3, 105, 161, 0.2);
-        }
-
-        .hydration-tips ul {
-            list-style: none;
-            padding-left: 0;
-            margin-top: 8px;
-        }
-
-        .hydration-tips li {
-            margin-bottom: 6px;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .hydration-tips li:before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #0EA5E9;
-            font-weight: bold;
-        }
-
-        /* Expert Opinion */
-        .expert-opinion {
-            background: linear-gradient(135deg, #F5E6FF 0%, #F3E8FF 100%);
-            border-left: 4px solid #7C3AED;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .expert-opinion.summary {
-            font-size: 15px;
-            color: #5F6368;
-            line-height: 1.7;
-        }
-
-        .expert-opinion.detailed {
-            margin-top: 16px;
-            padding: 16px;
-            background: white;
-            border: 1px solid #E8EAED;
-            border-radius: 8px;
-            display: none;
-        }
-
-        .expert-opinion.detailed.show {
-            display: block;
-        }
-
-        .expand-btn {
-            background: #7C3AED;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            margin-top: 12px;
-            transition: background 0.2s;
-        }
-
-        .expand-btn:hover {
-            background: #6D28D9;
-        }
-
-        .expert-opinion.detailed h5 {
-            font-size: 14px;
             font-weight: 600;
-            color: #BE185D;
-            margin-top: 16px;
-            margin-bottom: 8px;
+            color: var(--ink-primary);
+            text-transform: none;
+            letter-spacing: 0;
+            margin-bottom: var(--s-2);
         }
-
-        .expert-opinion.detailed p {
+        .twocol ul { list-style: none; margin: 0; padding: 0; }
+        .twocol li {
             font-size: 14px;
-            color: #5F6368;
-            line-height: 1.6;
-            margin-bottom: 12px;
+            color: var(--ink-primary);
+            padding: 6px 0 6px 14px;
+            position: relative;
         }
-
-        /* Footer */
-        footer {
-            background: white;
-            border-top: 1px solid #E8EAED;
-            padding: 24px;
-            margin-top: 40px;
-            text-align: center;
-            font-size: 13px;
-            color: #5F6368;
+        .twocol li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 14px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--ink-tertiary);
         }
+        .twocol .col-include li::before { background: var(--sage); }
+        .twocol .col-avoid   li::before { background: var(--terracotta); }
 
-        /* Mobile Responsive */
         @media (max-width: 768px) {
-            nav ul {
-                gap: 16px;
-            }
-
-            nav a {
-                font-size: 12px;
-            }
-
-            .header h1 {
-                font-size: 28px;
-            }
-
-            .grid-2, .grid-3 {
-                grid-template-columns: 1fr;
-            }
-
-            .include-exclude {
-                grid-template-columns: 1fr;
-            }
-
-            .patient-info {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            .meal-list {
-                grid-template-columns: 1fr;
-            }
-
-            .food-chart {
-                grid-template-columns: 1fr;
-            }
-
-            .card {
-                padding: 16px;
-            }
-
-            .water-glasses {
-                gap: 6px;
-            }
-
-            .glass {
-                width: 24px;
-                height: 36px;
-            }
-        }
-
-        /* Utilities */
-        .emoji {
-            font-size: 20px;
-            margin-right: 4px;
-        }
-
-        .highlight {
-            background: #FFFBEA;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: 500;
-            color: #92400E;
-        }
-
-        .mt-20 {
-            margin-top: 20px;
-        }
-
-        .note {
-            background: #FEF3C7;
-            border-left: 4px solid #FBBC04;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #5F6368;
-            margin-top: 16px;
+            .twocol { grid-template-columns: 1fr; }
+            .pill-schedule { grid-template-columns: 90px 1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="container">
-            <div class="nav-title">NBB Health Dashboard</div>
-            <ul>
-                <li><a href="index.html">Blood Work</a></li>
-                <li><a href="pregnancy.html">Pregnancy</a></li>
-                <li><a href="ultrasound.html">Ultrasounds</a></li>
-                <li><a href="nutrition.html" class="active">Diet & Nutrition</a></li>
+
+    <!-- =====================================================
+         HEADER BAND — see assets/partials/header-pattern.html
+         ===================================================== -->
+    <header class="header-band">
+        <nav class="container nav" aria-label="Primary">
+            <a href="index.html" class="nav__brand">NBB Health Dashboard</a>
+            <ul class="nav__list">
+                <li><a href="index.html"      class="nav__link">Blood work</a></li>
+                <li><a href="pregnancy.html"  class="nav__link">Pregnancy</a></li>
+                <li><a href="ultrasound.html" class="nav__link">Ultrasounds</a></li>
+                <li><a href="nutrition.html"  class="nav__link is-active" aria-current="page">Nutrition</a></li>
             </ul>
-        </div>
-    </nav>
-
-    <!-- Header -->
-    <div class="header">
-        <h1>Diet & Nutrition Plan</h1>
-        <p>Customized for your unique health needs during pregnancy</p>
-        <div class="patient-info">
-            <div class="info-badge">👩 Nikita Bhagat, 40 years</div>
-            <div class="info-badge">🤰 25 weeks pregnant</div>
-            <div class="info-badge">📋 APLA + Iron Deficiency Anemia</div>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- 1. Dietary Restrictions Overview -->
-        <div class="card">
-            <h2><span class="emoji">⚠️</span>Dietary Restrictions Overview</h2>
-            <p style="font-size: 14px; color: #5F6368; margin-bottom: 20px;">These restrictions are essential for managing your APLA condition and supporting optimal pregnancy nutrition. Your doctor has recommended avoiding wheat and dairy to reduce inflammation and support better nutrient absorption.</p>
-
-            <div class="restriction-card">
-                <h4>🚫 No Wheat Products</h4>
-                <p><strong>Avoid:</strong> Roti, bread, pasta, naan, biscuits, cakes, wheat-based snacks</p>
-                <p style="margin-top: 8px;"><strong>Use instead:</strong> Rice, jowar (sorghum), bajra (pearl millet), ragi (finger millet), oats, quinoa, buckwheat</p>
-            </div>
-
-            <div class="restriction-card">
-                <h4>🚫 No Milk</h4>
-                <p><strong>Avoid:</strong> Cow milk, buffalo milk, regular dairy products</p>
-                <p style="margin-top: 8px;"><strong>Alternatives:</strong> Coconut milk, almond milk, soy milk (if doctor approves). <strong>Important:</strong> Continue prescribed calcium supplements (Rotacum + DIP SHCAL-D3) to meet daily calcium needs.</p>
-            </div>
-
-            <div class="restriction-card" style="background: linear-gradient(135deg, #E6F4EA 0%, #DCEEE0 100%); border-left-color: #059669;">
-                <h4 style="color: #047857;">✅ Iron-Rich Focus</h4>
-                <p>Prioritize iron-rich foods to support hemoglobin recovery. Your Hb is still below 12 g/dL. Combine iron-rich foods with Vitamin C for better absorption.</p>
-            </div>
-
-            <div class="restriction-card" style="background: linear-gradient(135deg, #FEF3C7 0%, #FFFBEA 100%); border-left-color: #FBBC04;">
-                <h4 style="color: #92400E;">✅ Anti-Inflammatory Priority</h4>
-                <p>APLA benefits from an anti-inflammatory diet. Focus on omega-3 rich foods, turmeric, ginger, and antioxidant-rich vegetables to support blood flow and reduce clotting risk.</p>
-            </div>
-        </div>
-
-        <!-- 2. Daily Nutrition Targets -->
-        <div class="card">
-            <h2><span class="emoji">🎯</span>Daily Nutrition Targets (2nd Trimester, 25 Weeks)</h2>
-            <p style="font-size: 14px; color: #5F6368; margin-bottom: 20px;">These targets are tailored for your stage of pregnancy, age, and health conditions. Some are met through food; others through your prescribed supplements.</p>
-
-            <div class="grid-3">
-                <div class="target-card">
-                    <div class="label">Daily Calories</div>
-                    <div class="value">2,200–2,400</div>
-                    <div class="label">kcal/day</div>
-                </div>
-                <div class="target-card">
-                    <div class="label">Protein</div>
-                    <div class="value">75–80g</div>
-                    <div class="label">per day</div>
-                </div>
-                <div class="target-card">
-                    <div class="label">Iron</div>
-                    <div class="value">27mg</div>
-                    <div class="label">minimum daily</div>
-                </div>
-                <div class="target-card">
-                    <div class="label">Calcium</div>
-                    <div class="value">1,000mg</div>
-                    <div class="label">per day (supplemented)</div>
-                </div>
-                <div class="target-card">
-                    <div class="label">Folate</div>
-                    <div class="value">600mcg</div>
-                    <div class="label">daily (via Folicomax)</div>
-                </div>
-                <div class="target-card">
-                    <div class="label">DHA/Omega-3</div>
-                    <div class="value">200–300mg</div>
-                    <div class="label">per day</div>
-                </div>
-                <div class="target-card">
-                    <div class="label">Vitamin D</div>
-                    <div class="value">600–4000</div>
-                    <div class="label">IU daily</div>
-                </div>
-                <div class="target-card">
-                    <div class="label">Fiber</div>
-                    <div class="value">25–30g</div>
-                    <div class="label">per day</div>
-                </div>
-                <div class="target-card">
-                    <div class="label">Hydration</div>
-                    <div class="value">8–10</div>
-                    <div class="label">glasses per day</div>
+        </nav>
+        <div class="patient-strip" aria-label="Patient identity">
+            <div class="container patient-strip__inner">
+                <span class="patient-strip__name">Nikita Bhagat</span>
+                <span class="patient-strip__sep">·</span>
+                <span>40</span>
+                <span class="patient-strip__sep">·</span>
+                <span>A+</span>
+                <span class="patient-strip__sep">·</span>
+                <span>G3P1L0A1</span>
+                <span class="patient-strip__sep">·</span>
+                <span data-dyn="ga-wd">26w 0d</span>
+                <span class="patient-strip__sep">·</span>
+                <span>EDD <span data-dyn="edd-short">27 Jul 2026</span></span>
+                <div class="patient-strip__chips">
+                    <span class="patient-strip__chip">APLA positive</span>
+                    <span class="patient-strip__chip">Iron deficiency anemia</span>
+                    <span class="patient-strip__chip">Advanced maternal age</span>
                 </div>
             </div>
         </div>
+    </header>
 
-        <!-- 3. Supplement Schedule -->
-        <div class="card">
-            <h2><span class="emoji">💊</span>Daily Supplement Schedule</h2>
-            <p style="font-size: 14px; color: #5F6368; margin-bottom: 20px;"><strong style="color: #BE185D;">Critical Reminder:</strong> HCQS must be taken IMMEDIATELY BEFORE FOOD. Iron and calcium should be taken 2 hours apart for optimal absorption.</p>
+    <main class="container">
 
-            <table class="schedule-table">
+        <!-- ===================================================
+             PAGE TITLE
+             =================================================== -->
+        <section class="page-title">
+            <p class="eyebrow page-title__eyebrow">Nutrition</p>
+            <h1 class="display-1">Diet &amp; nutrition</h1>
+            <p class="page-title__sub">Daily supplement schedule, hydration, and the meal references that support iron recovery and APLA management.</p>
+        </section>
+
+        <!-- ===================================================
+             NOW BAND — today's pill schedule + hydration target
+             =================================================== -->
+        <section class="now-card" aria-labelledby="now-heading">
+            <p class="eyebrow now-card__eyebrow" id="now-heading">Today</p>
+            <p class="now-card__lede">
+                <span data-dyn="ga-wd">26w 0d</span>
+                <span class="sep">·</span>
+                <span data-dyn="trimester-name">Second Trimester</span>
+                <span class="sep">·</span>
+                <span>2,200–2,400 kcal · 75–80 g protein</span>
+            </p>
+
+            <p class="eyebrow now-card__watch-label">Pill schedule at a glance</p>
+            <div class="pill-schedule">
+                <div class="pill-schedule__time">Before food</div>
+                <div class="pill-schedule__drugs"><strong>HCQS 300 mg</strong> — taken immediately before breakfast</div>
+
+                <div class="pill-schedule__time">Morning</div>
+                <div class="pill-schedule__drugs">Fexacta (iron + folic acid) with vitamin C · Folicomax · MEGA CV · protein powder</div>
+
+                <div class="pill-schedule__time">Afternoon</div>
+                <div class="pill-schedule__drugs">Rotacum and DIP SHCAL-D3 — at least 2 hours after the morning iron tablet</div>
+
+                <div class="pill-schedule__time">Evening</div>
+                <div class="pill-schedule__drugs">Ecosprin 150 mg · MEGA CV · protein powder</div>
+
+                <div class="pill-schedule__time">Weekly</div>
+                <div class="pill-schedule__drugs">SYP SHCAL-D3 60K — 5 ml on the same day each week</div>
+            </div>
+
+            <p class="eyebrow now-card__watch-label">Watch this fortnight</p>
+            <ul class="now-card__watch-list">
+                <li class="is-good"><strong>Iron + vitamin C pairing</strong> — keep orange or lemon at every Fexacta dose. Hb is recovering.</li>
+                <li class="is-watch"><strong>Two-hour gap, iron and calcium</strong> — they compete. Iron in the morning, calcium in the afternoon.</li>
+                <li><strong>Hydration target 2.5–3 L</strong> — about 8–10 glasses across the day for placental blood flow.</li>
+            </ul>
+        </section>
+
+        <!-- ===================================================
+             TODAY'S COMPLIANCE — full supplement table, pairing rules, hydration
+             =================================================== -->
+
+        <!-- ----- Supplement schedule (full table) ----------------------- -->
+        <section class="panel panel--watch">
+            <header class="panel__head">
+                <h2 class="panel__title">Daily supplement schedule</h2>
+                <span class="panel__trajectory">HCQS before food</span>
+            </header>
+
+            <p class="panel__summary">
+                HCQS must be taken immediately before food. Iron and calcium should be at least two hours apart for absorption. The schedule below is the full version of the at-a-glance summary above.
+            </p>
+
+            <table class="data-table" aria-label="Daily supplement schedule">
                 <thead>
                     <tr>
-                        <th>Time</th>
-                        <th>Supplement</th>
-                        <th>Dosage</th>
-                        <th>Notes</th>
+                        <th scope="col">Time</th>
+                        <th scope="col">Supplement</th>
+                        <th scope="col">Dosage</th>
+                        <th scope="col">Notes</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr style="background: #FFF8F0;">
-                        <td><span class="time-badge morning">BEFORE FOOD</span></td>
-                        <td><strong>HCQS</strong> (Hydroxychloroquine)</td>
-                        <td>300mg × 1</td>
-                        <td>⚠️ MUST be taken immediately before eating</td>
+                    <tr>
+                        <td>Before food</td>
+                        <td>HCQS (Hydroxychloroquine)</td>
+                        <td class="num">300 mg</td>
+                        <td>Take immediately before breakfast.</td>
                     </tr>
-                    <tr style="background: #FFFBF0;">
-                        <td rowspan="5" style="vertical-align: top;"><span class="time-badge morning">MORNING</span><br><span style="font-size: 12px; color: #5F6368;">After Food</span></td>
-                        <td><strong>Fexacta</strong> (Iron + Folic Acid)</td>
-                        <td>1 tablet</td>
-                        <td>Take with Vit C juice (orange/lemon)</td>
+                    <tr>
+                        <td>Morning, after food</td>
+                        <td>Fexacta (Iron + Folic Acid)</td>
+                        <td class="num">1 tablet</td>
+                        <td>Take with orange or lemon juice.</td>
                     </tr>
-                    <tr style="background: #FFFBF0;">
-                        <td><strong>Folicomax</strong> (Folic Acid)</td>
-                        <td>1 tablet</td>
-                        <td>Supports fetal neural development</td>
+                    <tr>
+                        <td>Morning, after food</td>
+                        <td>Folicomax (Folic Acid)</td>
+                        <td class="num">1 tablet</td>
+                        <td>Supports fetal neural development.</td>
                     </tr>
-                    <tr style="background: #FFFBF0;">
-                        <td><strong>MEGA CV</strong> (Multivitamin)</td>
-                        <td>1 tablet</td>
-                        <td>Comprehensive micronutrient support</td>
+                    <tr>
+                        <td>Morning, after food</td>
+                        <td>MEGA CV (Multivitamin)</td>
+                        <td class="num">1 tablet</td>
+                        <td>Comprehensive micronutrient support.</td>
                     </tr>
-                    <tr style="background: #FFFBF0;">
-                        <td><strong>Protein Powder</strong> (Nutriease with DHA)</td>
-                        <td>2 scoops</td>
-                        <td>Mix with meal or milk alternative</td>
+                    <tr>
+                        <td>Morning, after food</td>
+                        <td>Nutriease Protein Powder (with DHA)</td>
+                        <td class="num">2 scoops</td>
+                        <td>Mix with food or a milk alternative.</td>
                     </tr>
-                    <tr style="background: #FFFBF0;">
-                        <td colspan="3" style="font-size: 13px; color: #5F6368; font-style: italic;">💡 With breakfast: oats/ragi porridge, poha, or rice idli</td>
+                    <tr>
+                        <td>Afternoon, after food</td>
+                        <td>Rotacum (Calcium + Vitamin D)</td>
+                        <td class="num">1 tablet</td>
+                        <td>At least 2 hours after the morning iron tablet.</td>
                     </tr>
-                    <tr style="background: #F0FFF4;">
-                        <td rowspan="3" style="vertical-align: top;"><span class="time-badge afternoon">AFTERNOON</span><br><span style="font-size: 12px; color: #5F6368;">After Food</span></td>
-                        <td><strong>Rotacum</strong> (Calcium + Vitamin D)</td>
-                        <td>1 tablet</td>
-                        <td>⏰ At least 2 hours after iron tablet</td>
+                    <tr>
+                        <td>Afternoon, after food</td>
+                        <td>DIP SHCAL-D3 (Calcium + Vit D)</td>
+                        <td class="num">1 tablet</td>
+                        <td>Additional calcium fortification.</td>
                     </tr>
-                    <tr style="background: #F0FFF4;">
-                        <td><strong>DIP SHCAL-D3</strong> (Calcium + Vit D)</td>
-                        <td>1 tablet</td>
-                        <td>Additional calcium fortification</td>
+                    <tr>
+                        <td>Evening, after food</td>
+                        <td>Ecosprin (Aspirin)</td>
+                        <td class="num">150 mg</td>
+                        <td>For APLA clot prevention; taken at night.</td>
                     </tr>
-                    <tr style="background: #F0FFF4;">
-                        <td colspan="3" style="font-size: 13px; color: #5F6368; font-style: italic;">💡 With snack: dates, almonds, or roasted chana</td>
+                    <tr>
+                        <td>Evening, after food</td>
+                        <td>MEGA CV (Multivitamin)</td>
+                        <td class="num">1 tablet</td>
+                        <td>Second dose for comprehensive coverage.</td>
                     </tr>
-                    <tr style="background: #F3E8FF;">
-                        <td rowspan="4" style="vertical-align: top;"><span class="time-badge evening">EVENING</span><br><span style="font-size: 12px; color: #5F6368;">After Food</span></td>
-                        <td><strong>Ecosprin</strong> (Aspirin)</td>
-                        <td>150mg × 1</td>
-                        <td>For APLA blood clot prevention; take at night</td>
+                    <tr>
+                        <td>Evening, after food</td>
+                        <td>Nutriease Protein Powder (with DHA)</td>
+                        <td class="num">2 scoops</td>
+                        <td>Mix with food or a milk alternative.</td>
                     </tr>
-                    <tr style="background: #F3E8FF;">
-                        <td><strong>MEGA CV</strong> (Multivitamin)</td>
-                        <td>1 tablet</td>
-                        <td>Second dose for comprehensive coverage</td>
-                    </tr>
-                    <tr style="background: #F3E8FF;">
-                        <td><strong>Protein Powder</strong> (Nutriease with DHA)</td>
-                        <td>2 scoops</td>
-                        <td>Mix with meal or milk alternative</td>
-                    </tr>
-                    <tr style="background: #F3E8FF;">
-                        <td colspan="3" style="font-size: 13px; color: #5F6368; font-style: italic;">💡 With dinner: rice + dal, ragi roti + curry, or fish with vegetables</td>
-                    </tr>
-                    <tr style="background: #FCE4EC;">
-                        <td><span class="time-badge weekly">WEEKLY</span><br><span style="font-size: 12px; color: #5F6368;">Once/Week</span></td>
-                        <td><strong>SYP SHCAL-D3 60K</strong> (High-dose Vitamin D)</td>
-                        <td>5ml × 1</td>
-                        <td>Cholecalciferol supplement; take on the same day each week</td>
+                    <tr>
+                        <td>Weekly</td>
+                        <td>SYP SHCAL-D3 60K (high-dose Vitamin D)</td>
+                        <td class="num">5 ml</td>
+                        <td>Cholecalciferol; same day each week.</td>
                     </tr>
                 </tbody>
             </table>
 
-            <div class="note">
-                <strong>Iron & Calcium Absorption:</strong> Iron and calcium compete for absorption. Take iron supplements at least 2 hours apart from calcium. Best practice: Iron in morning, calcium in afternoon.
+            <div class="callout callout--watch">
+                <span class="callout__title">Iron and calcium absorption</span>
+                Iron and calcium compete at the GI absorption site. Keep them at least two hours apart — iron in the morning, calcium in the afternoon.
             </div>
-        </div>
+        </section>
 
-        <!-- 4. Iron-Boosting Meal Ideas -->
-        <div class="card">
-            <h2><span class="emoji">🍽️</span>Iron-Boosting Meal Ideas (Wheat-Free, Milk-Free)</h2>
-            <p style="font-size: 14px; color: #5F6368; margin-bottom: 20px;">These are real meals you'd find in Indian kitchens. All recipes avoid wheat and dairy while maximizing iron and protein. Pair with Vitamin C sources for better iron absorption.</p>
+        <!-- ----- Iron + Vitamin C pairing ----------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Iron + vitamin C pairing</h2>
+                <span class="panel__trajectory">3–6× absorption boost</span>
+            </header>
 
-            <div class="meal-category">
-                <h4><span class="emoji">🌅</span>Breakfast Options (Pick One)</h4>
-                <ul class="meal-list">
-                    <li>
-                        <strong>Ragi (Finger Millet) Dosa</strong>
-                        <div>With coconut chutney + 1 boiled egg | Iron + Protein + Minerals</div>
-                    </li>
-                    <li>
-                        <strong>Poha (Flattened Rice)</strong>
-                        <div>With peanuts, curry leaves, lemon, carrots | Iron + Vitamin C boost</div>
-                    </li>
-                    <li>
-                        <strong>Oats Porridge</strong>
-                        <div>Made with almond milk + dates + walnuts | Iron + Omega-3</div>
-                    </li>
-                    <li>
-                        <strong>Bajra (Millet) Roti</strong>
-                        <div>With spinach sabzi + oil/ghee | High iron content</div>
-                    </li>
-                    <li>
-                        <strong>Rice Idli with Sambar</strong>
-                        <div>Dal-rich sambhar + orange juice on side | Iron + folate</div>
-                    </li>
-                    <li>
-                        <strong>Quinoa Upma</strong>
-                        <div>With vegetables + boiled egg on side | Complete protein + iron</div>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="meal-category">
-                <h4><span class="emoji">🍲</span>Lunch Options (Rice-Based)</h4>
-                <ul class="meal-list">
-                    <li>
-                        <strong>Rice + Dal (Rajma/Chole/Moong)</strong>
-                        <div>Green leafy sabzi + raw salad | Iron + plant protein</div>
-                    </li>
-                    <li>
-                        <strong>Brown Rice Pulao</strong>
-                        <div>With paneer + coconut-based raita | Protein + calcium alternative</div>
-                    </li>
-                    <li>
-                        <strong>Jowar (Sorghum) Roti</strong>
-                        <div>Chicken curry + beetroot salad | Iron + B12 + antioxidants</div>
-                    </li>
-                    <li>
-                        <strong>Rice + Fish Curry</strong>
-                        <div>Pomfret or rohu + spinach + lemon | Iron + DHA + Vitamin C</div>
-                    </li>
-                    <li>
-                        <strong>Moong Khichdi</strong>
-                        <div>Rice + moong dal + ghee + cucumber raita | Easy protein + digestion</div>
-                    </li>
-                    <li>
-                        <strong>Rice + Chana Masala</strong>
-                        <div>Chickpea curry + baingan sabzi | Plant iron + folate</div>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="meal-category">
-                <h4><span class="emoji">🥜</span>Evening Snack (Choose One)</h4>
-                <ul class="meal-list">
-                    <li>
-                        <strong>Roasted Chana + Jaggery</strong>
-                        <div>Handful of roasted chickpeas | Iron + natural sweetness</div>
-                    </li>
-                    <li>
-                        <strong>Dates & Almonds</strong>
-                        <div>3–4 dates + 5–6 almonds | High iron + healthy fats</div>
-                    </li>
-                    <li>
-                        <strong>Fruit Plate</strong>
-                        <div>Pomegranate + orange + guava | Iron + vitamin C synergy</div>
-                    </li>
-                    <li>
-                        <strong>Sprouts Chaat</strong>
-                        <div>Moong/chana sprouts + lemon + chaat masala | Iron + folate + probiotics</div>
-                    </li>
-                    <li>
-                        <strong>Roasted Sweet Potato</strong>
-                        <div>With chaat masala | Iron + fiber + beta-carotene</div>
-                    </li>
-                    <li>
-                        <strong>Til (Sesame) Laddu</strong>
-                        <div>Home-made with jaggery | Iron + calcium + healthy fats</div>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="meal-category">
-                <h4><span class="emoji">🌙</span>Dinner Options</h4>
-                <ul class="meal-list">
-                    <li>
-                        <strong>Rice + Palak Dal</strong>
-                        <div>Spinach lentil curry + grilled chicken | Iron + protein doubled</div>
-                    </li>
-                    <li>
-                        <strong>Rice + Egg Curry</strong>
-                        <div>3 scrambled eggs + baingan bharta | High protein + iron</div>
-                    </li>
-                    <li>
-                        <strong>Oats Khichdi</strong>
-                        <div>Oats + moong + mixed vegetables | Fiber-rich + easily digestible</div>
-                    </li>
-                    <li>
-                        <strong>Rice + Rajma (Kidney Beans)</strong>
-                        <div>With onion + tomato + salad | Plant-based iron + folate</div>
-                    </li>
-                    <li>
-                        <strong>Ragi Roti + Mutton/Chicken</strong>
-                        <div>Lean meat curry + green beans | Iron + B12 + heme iron</div>
-                    </li>
-                    <li>
-                        <strong>Rice + Methi (Fenugreek) Dal</strong>
-                        <div>With spinach greens + boiled egg | Iron-boosting combo</div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- 5. Iron-Rich Foods Chart -->
-        <div class="card">
-            <h2><span class="emoji">📊</span>Iron-Rich Foods Reference Chart</h2>
-            <p style="font-size: 14px; color: #5F6368; margin-bottom: 20px;"><strong>Heme iron</strong> (animal sources) is better absorbed (15–35%). <strong>Non-heme iron</strong> (plant sources) needs Vitamin C to boost absorption (2–20%).</p>
-
-            <div class="food-chart">
-                <div class="food-section">
-                    <h4 style="color: #BE185D;">🥩 Animal Sources (Heme Iron)</h4>
-                    <div class="food-item">
-                        <span class="food-name">Chicken Liver</span>
-                        <span class="iron-content">11 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Mutton</span>
-                        <span class="iron-content">3.5 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Eggs (1 egg)</span>
-                        <span class="iron-content">1.2 mg</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Fish (Pomfret)</span>
-                        <span class="iron-content">1.5 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Chicken</span>
-                        <span class="iron-content">1.3 mg/100g</span>
-                    </div>
-                </div>
-
-                <div class="food-section">
-                    <h4 style="color: #7C3AED;">🌿 Plant Sources (Non-Heme Iron)</h4>
-                    <div class="food-item">
-                        <span class="food-name">Garden Cress Seeds (Halim)</span>
-                        <span class="iron-content">100 mg/100g ⭐</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Jaggery (Gur)</span>
-                        <span class="iron-content">11 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Dried Dates</span>
-                        <span class="iron-content">8 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Bajra (Pearl Millet)</span>
-                        <span class="iron-content">8 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Rajma (Kidney Beans)</span>
-                        <span class="iron-content">6.7 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Chana (Chickpeas)</span>
-                        <span class="iron-content">6.2 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Ragi (Finger Millet)</span>
-                        <span class="iron-content">3.9 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Spinach (Palak)</span>
-                        <span class="iron-content">2.7 mg/100g</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Pomegranate</span>
-                        <span class="iron-content">0.3 mg + absorption aid</span>
-                    </div>
-                    <div class="food-item">
-                        <span class="food-name">Beetroot</span>
-                        <span class="iron-content">0.8 mg/100g</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="note" style="margin-top: 20px;">
-                <strong>Pro Tip:</strong> Garden cress seeds (halim) are extraordinarily iron-rich. Try adding them to salads, yogurt alternatives, or as part of traditional halim recipes.
-            </div>
-        </div>
-
-        <!-- 6. Anti-Inflammatory Foods for APLA -->
-        <div class="card">
-            <h2><span class="emoji">🔥</span>Anti-Inflammatory Foods for APLA Management</h2>
-            <p style="font-size: 14px; color: #5F6368; margin-bottom: 20px;">APLA (Antiphospholipid Antibody) increases clotting risk. An anti-inflammatory diet supports blood flow, reduces systemic inflammation, and complements your Ecosprin therapy.</p>
-
-            <div class="include-exclude">
-                <div class="include-list">
-                    <h4>✓ Foods to Include</h4>
-                    <ul>
-                        <li>Fatty fish (salmon, mackerel, sardines) — Omega-3 reduces inflammation</li>
-                        <li>Turmeric (haldi) + black pepper — Curcumin is a natural anti-inflammatory</li>
-                        <li>Ginger — Anti-inflammatory & aids digestion</li>
-                        <li>Garlic — Immune modulation & natural antibiotic</li>
-                        <li>Leafy greens (spinach, methi, fenugreek) — Antioxidants & folate</li>
-                        <li>Berries (if available) — Polyphenols & antioxidants</li>
-                        <li>Walnuts & almonds — Omega-3 & Vitamin E</li>
-                        <li>Olive oil or mustard oil — Healthy monounsaturated fats</li>
-                        <li>Onions — Quercetin (natural anti-inflammatory)</li>
-                        <li>Tomatoes — Lycopene (antioxidant)</li>
-                    </ul>
-                </div>
-
-                <div class="exclude-list">
-                    <h4>✕ Foods to Limit/Avoid</h4>
-                    <ul>
-                        <li>Refined sugar — Promotes inflammation & blood sugar spikes</li>
-                        <li>Processed foods — Trans fats & preservatives</li>
-                        <li>Excessive salt — Can elevate blood pressure</li>
-                        <li>Wheat products — Already restricted; may promote inflammation</li>
-                        <li>Dairy milk — Already restricted; can promote inflammation in some</li>
-                        <li>Excessive caffeine — Limit to max 200mg/day (1 small cup coffee)</li>
-                        <li>Alcohol — Can interact with Ecosprin & increase clotting</li>
-                        <li>Raw/undercooked meat or fish — Infection risk in pregnancy</li>
-                        <li>High-mercury fish — Swordfish, king mackerel, shark</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div style="background: linear-gradient(135deg, #E6F4EA 0%, #DCEEE0 100%); padding: 16px; border-radius: 8px; margin-top: 20px;">
-                <h4 style="color: #047857; margin-bottom: 12px;">Why Anti-Inflammatory Diet Matters for APLA</h4>
-                <p style="font-size: 14px; color: #5F6368; line-height: 1.6;">
-                    APLA causes your immune system to produce antibodies against phospholipids, making blood more prone to clotting. While Ecosprin prevents clots pharmacologically, an anti-inflammatory diet supports your body's natural regulatory mechanisms. Omega-3 fatty acids thin blood naturally, turmeric reduces systemic inflammation, and antioxidants protect your endothelial cells (blood vessel linings). Together, diet + medicine = optimal protection for you and your baby.
-                </p>
-            </div>
-        </div>
-
-        <!-- 7. Vitamin C Pairing Guide -->
-        <div class="card">
-            <h2><span class="emoji">🍊</span>Vitamin C Pairing Guide for Iron Absorption</h2>
-            <p style="font-size: 14px; color: #5F6368; margin-bottom: 20px;">Non-heme iron (plant-based) absorption increases <strong>3–6 times</strong> when paired with Vitamin C. Use these strategies to maximize iron from your diet and supplements.</p>
-
-            <div class="pairing-box">
-                <h4>How to Maximize Iron Absorption</h4>
-                <ul>
-                    <li><strong>Take Fexacta (iron tablet) with orange or lemon juice</strong> — Vitamin C enhances absorption immediately</li>
-                    <li><strong>Add fresh lemon to dal, vegetables, and salads</strong> — Every meal becomes an iron booster</li>
-                    <li><strong>Have amla (Indian gooseberry) as a snack</strong> — Highest natural Vitamin C content; can make amla pickle or juice</li>
-                    <li><strong>Eat guava, kiwi, or pomegranate alongside iron-rich meals</strong> — Fruits with every meal</li>
-                    <li><strong>Use fresh tomato in curries and salads</strong> — Lycopene + Vitamin C synergy</li>
-                    <li><strong>Add bell peppers (any color) to stir-fries</strong> — High Vitamin C, low wheat content</li>
-                </ul>
-            </div>
-
-            <div class="pairing-box" style="background: linear-gradient(135deg, #FECDD3 0%, #FBCFE8 100%); border-left-color: #DC2626;">
-                <h4 style="color: #991B1B;">❌ Iron Blockers — Avoid Within 1 Hour of Iron Intake</h4>
-                <ul>
-                    <li><strong>Tea & coffee</strong> — Tannins block iron absorption by up to 60%</li>
-                    <li><strong>Red wine</strong> — Also contains tannins (and not recommended in pregnancy anyway)</li>
-                    <li><strong>Calcium supplements (if taken at same time)</strong> — Compete for absorption</li>
-                    <li><strong>High-fiber foods in excess</strong> — Fiber can bind iron</li>
-                </ul>
-            </div>
-
-            <div class="note">
-                <strong>Timing Strategy:</strong> Take iron tablet in morning (Fexacta after HCQS), with orange juice. Wait 2+ hours before taking calcium supplements in afternoon. Avoid tea/coffee for 1 hour after taking iron.
-            </div>
-        </div>
-
-        <!-- 8. Hydration Tracker -->
-        <div class="card">
-            <h2><span class="emoji">💧</span>Hydration Tracker</h2>
-
-            <div class="hydration-tracker">
-                <div class="label">Daily Target</div>
-                <div class="target">8–10 glasses</div>
-                <div class="label">(2.5–3 liters per day)</div>
-
-                <div class="water-glasses">
-                    <div class="glass filled"></div>
-                    <div class="glass filled"></div>
-                    <div class="glass filled"></div>
-                    <div class="glass"></div>
-                    <div class="glass"></div>
-                    <div class="glass"></div>
-                    <div class="glass"></div>
-                    <div class="glass"></div>
-                    <div class="glass"></div>
-                    <div class="glass"></div>
-                </div>
-
-                <div class="hydration-tips">
-                    <h4 style="color: #0369A1; margin-bottom: 12px;">Hydration Recommendations</h4>
-                    <ul>
-                        <li><strong>Plain water:</strong> 6–8 glasses daily</li>
-                        <li><strong>Coconut water:</strong> 1–2 glasses (electrolytes + potassium for APLA blood flow)</li>
-                        <li><strong>Buttermilk (lactose-free):</strong> If tolerated; aids digestion</li>
-                        <li><strong>Lemon water:</strong> Aids iron absorption + vitamin C boost</li>
-                        <li><strong>Ginger tea (mild):</strong> Anti-inflammatory; 1–2 cups max</li>
-                        <li><strong>Chamomile tea:</strong> In moderation (safe in 2nd/3rd trimester)</li>
-                        <li><strong>Avoid:</strong> Sugary drinks, excessive caffeine, unpasteurized juices</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div style="background: #F0F4FF; padding: 16px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #1A73E8;">
-                <h4 style="color: #1A73E8; margin-bottom: 8px;">💡 Hydration Tip for APLA</h4>
-                <p style="font-size: 14px; color: #5F6368;">Adequate hydration maintains blood viscosity (thickness) and supports placental blood flow. Dehydration can increase clotting risk. Drink consistently throughout the day, especially in warm weather or after exercise.</p>
-            </div>
-        </div>
-
-        <!-- 9. Expert Opinion -->
-        <div class="card">
-            <h2><span class="emoji">👨‍⚕️</span>Expert Nutritional Opinion</h2>
-
-            <div class="expert-opinion summary">
-                <p>
-                    <strong>Summary:</strong> Your wheat-free, milk-free restrictions combined with APLA and iron-deficiency anemia require a strategically designed diet. This plan prioritizes maximizing iron absorption through Vitamin C pairing, ensuring adequate protein through dal/legumes/eggs/meat (with your prescribed protein powder), and replacing dairy calcium through supplements (Rotacum + DIP SHCAL-D3) plus calcium-rich non-dairy foods like ragi, sesame seeds, and almonds. The anti-inflammatory component (omega-3, turmeric, ginger) complements your Ecosprin therapy for blood clot prevention. The key clinical goal is raising your hemoglobin above 11.5 g/dL by the 3rd trimester when blood volume peaks and fetal demands increase. Your supplement schedule is optimized for absorption timing and clinical efficacy.
-                </p>
-            </div>
-
-            <button class="expand-btn" onclick="toggleExpertDetails()">Read Detailed Analysis</button>
-
-            <div class="expert-opinion detailed" id="expertDetails">
-                <h5>Nutritional Analysis by Condition</h5>
-                <p>
-                    <strong>Iron-Deficiency Anemia (Hb 10.2 g/dL):</strong> Your hemoglobin is significantly below the pregnancy target of 12+ g/dL. This affects oxygen delivery to your placenta and fetus. We've designed every meal to include iron-rich foods paired with Vitamin C. Your Fexacta supplement (iron + folate) addresses this directly, but dietary iron (especially heme iron from eggs and meat) provides additional absorption pathways. Timing iron intake away from calcium is critical—they compete for absorption in the GI tract.
-                </p>
-                <p>
-                    <strong>APLA (Antiphospholipid Antibodies):</strong> Your immune system produces antibodies that attack phospholipids in cell membranes, increasing thrombotic risk. Ecosprin 150mg provides anticoagulation pharmacologically, but diet plays a supporting role. Omega-3 fatty acids (from fish and walnuts) naturally thin blood. Turmeric and ginger are evidence-backed anti-inflammatories. Adequate hydration maintains blood flow. This multi-pronged approach is why you're on both medication and dietary modifications—redundancy provides safety.
-                </p>
-                <p>
-                    <strong>Wheat Restriction:</strong> Your doctor's wheat restriction likely addresses either gluten sensitivity (which elevates inflammation markers) or a need to reduce overall inflammation. Wheat-free alternatives (ragi, bajra, jowar, quinoa, oats) provide equal or superior micronutrient profiles. Ragi is particularly valuable—it's iron-rich (3.9 mg/100g), calcium-rich (344 mg/100g), and anti-inflammatory. Make ragi a staple.
-                </p>
-                <p>
-                    <strong>Dairy Restriction:</strong> Milk avoidance is unusual in Indian pregnancy diets but may reflect lactose sensitivity, casein allergy, or inflammation management. Your calcium needs (1,000 mg/day) are met through: (1) Rotacum supplement (500mg calcium), (2) DIP SHCAL-D3 supplement (additional calcium), (3) Dietary sources: ragi, sesame seeds, almonds, fortified plant milks. Your supplement regimen is robust; don't rely solely on food for calcium.
-                </p>
-                <p>
-                    <strong>Advanced Maternal Age (40 years):</strong> At 40, you have higher nutritional needs and slightly elevated risk of gestational complications. Your protein needs are 75–80g/day (vs. 71g for younger women). The prescribed Nutriease Protein Powder (2 scoops twice daily = 40g protein) covers about half; the rest comes from food (eggs, chicken, dal, fish). DHA supplementation via the protein powder is critical for fetal brain and eye development, especially at your age.
-                </p>
-
-                <h5>Why This Supplement Schedule Works</h5>
-                <p>
-                    <strong>HCQS immediately before food:</strong> Hydroxychloroquine is an antimalarial used off-label for APLA. Taking it immediately before food ensures optimal stomach pH for absorption. Taking it with food ensures it doesn't cause GI upset.
-                </p>
-                <p>
-                    <strong>Morning iron + afternoon calcium:</strong> Iron and calcium both use divalent cation transporters. When taken 2+ hours apart, they don't compete. Taking iron in morning with Vitamin C (orange juice) maximizes absorption. Calcium in afternoon avoids interference.
-                </p>
-                <p>
-                    <strong>MEGA CV twice daily:</strong> Multivitamins are spread across meals to improve overall micronutrient absorption and reduce GI burden.
-                </p>
-                <p>
-                    <strong>Protein powder with meals:</strong> Taken with food, it's better tolerated and the protein is used more efficiently (whole-food amino acid matrix). DHA is fat-soluble; taking it with food ensures absorption.
-                </p>
-                <p>
-                    <strong>Ecosprin at night:</strong> Aspirin is often dosed once daily in evening to align with circadian clotting risk (which peaks overnight). It's relatively gentle on empty stomachs.
-                </p>
-
-                <h5>Third Trimester Adjustments Needed</h5>
-                <p>
-                    <strong>Around week 30:</strong> Blood volume increases by 40% in pregnancy; most happens in trimester 3. Your hemoglobin will dilute further (physiologic anemia is normal). Ensure iron intake stays high. Your doctor may increase Fexacta dose or add intravenous iron if Hb drops below 10.
-                </p>
-                <p>
-                    <strong>Around week 35:</strong> Fetal calcium demands peak. Ensure Rotacum + DIP SHCAL-D3 compliance is perfect. DHA needs stay constant (200–300 mg/day).
-                </p>
-                <p>
-                    <strong>Folate stays high:</strong> Folicomax (folic acid supplement) is critical up to delivery and during breastfeeding.
-                </p>
-
-                <h5>Pre-Delivery Nutrition Prep (Weeks 35–40)</h5>
-                <p>
-                    Maintain all supplements as prescribed. Increase calorie intake slightly if weight gain has been slow (target 10–12kg total for your BMI). Ensure high iron intake in last 4 weeks to prepare your blood volume for delivery blood loss. Continue anti-inflammatory diet to support Ecosprin's efficacy.
-                </p>
-
-                <h5>Postpartum Diet Planning (After Delivery)</h5>
-                <p>
-                    <strong>First 6 weeks (recovery):</strong> Continue all supplements. Add extra protein (chicken, eggs, fish) for tissue repair and milk supply. Iron supplementation remains critical postpartum to replenish blood loss. Wheat may be reintroduced if there's no clinical indication to restrict long-term. Dairy can be reintroduced if tolerated (consider lactose-free options first). Continue anti-inflammatory foods.
-                </p>
-                <p>
-                    <strong>Breastfeeding (if planned):</strong> Protein needs increase to 1.3g/kg (vs. pregnancy's 1.1g/kg). Calorie needs rise by 500 kcal/day. DHA supplementation continues (transfers to breastmilk). Iron supplements continue until hemoglobin normalizes (post-delivery labs at 6 weeks, then 3 months).
-                </p>
-
-                <h5>Key Takeaway</h5>
-                <p>
-                    Your diet is not just about avoiding wheat and dairy. It's a precision nutrition plan that compensates for APLA and anemia while supporting a healthy 3rd trimester and delivery. Adherence to this plan, combined with your medication regimen, optimizes outcomes for both you and your baby. Recheck hemoglobin at 28 weeks; if still below 11, discuss IV iron with your doctor before week 32.
-                </p>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer>
-            <p>
-                <strong>NBB Health Dashboard</strong> — Last updated: 13 Apr 2026<br>
-                <span style="font-size: 12px; color: #9AA0A6;">
-                    ⚕️ Consult your doctor before making dietary changes. This plan is personalized to Nikita Bhagat's health profile and is not a substitute for professional medical advice. All supplement timings and dosages should be confirmed with your treating physician.
-                </span>
+            <p class="panel__summary">
+                Non-heme iron (plant-based) absorption increases 3–6 times when paired with vitamin C. Use the strategies below to maximise iron from food and from the Fexacta tablet.
             </p>
-        </footer>
-    </div>
+
+            <h3 class="h3" style="margin-top: var(--s-3); margin-bottom: var(--s-2);">How to maximise absorption</h3>
+            <ul style="margin: 0 0 var(--s-3) var(--s-4); padding: 0; font-size: 14px; line-height: 1.7;">
+                <li>Take Fexacta with orange or lemon juice — vitamin C enhances absorption immediately.</li>
+                <li>Add fresh lemon to dal, vegetables, and salads — every meal becomes an iron booster.</li>
+                <li>Have amla (Indian gooseberry) as a snack — highest natural vitamin C content.</li>
+                <li>Eat guava, kiwi, or pomegranate alongside iron-rich meals.</li>
+                <li>Use fresh tomato in curries and salads — lycopene and vitamin C together.</li>
+                <li>Add bell peppers (any colour) to stir-fries — high vitamin C.</li>
+            </ul>
+
+            <div class="callout callout--alert">
+                <span class="callout__title">Iron blockers — avoid within one hour of iron</span>
+                Tea and coffee (tannins block absorption by up to 60%), red wine (tannins, and not recommended in pregnancy), calcium supplements at the same time, and excess high-fibre foods.
+            </div>
+
+            <div class="callout" style="margin-top: var(--s-3);">
+                <span class="callout__title">Timing strategy</span>
+                Take the iron tablet in the morning (Fexacta after HCQS) with orange juice. Wait at least two hours before the afternoon calcium. Avoid tea or coffee for one hour after iron.
+            </div>
+        </section>
+
+        <!-- ----- Hydration ----------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Hydration</h2>
+                <span class="panel__trajectory">Target 8–10 glasses</span>
+            </header>
+
+            <p class="panel__summary">
+                Adequate hydration maintains blood viscosity and supports placental blood flow. Dehydration can increase clotting risk in APLA. Drink consistently across the day, more in warm weather.
+            </p>
+
+            <p class="big-num" style="margin-top: var(--s-3);">8–10<span style="font-family: var(--font-sans); font-size: 16px; color: var(--ink-secondary); margin-left: 8px;">glasses · 2.5–3 L per day</span></p>
+
+            <div class="glass-row" role="img" aria-label="Hydration target: 8 to 10 glasses per day">
+                <div class="glass is-filled"></div>
+                <div class="glass is-filled"></div>
+                <div class="glass is-filled"></div>
+                <div class="glass is-filled"></div>
+                <div class="glass is-filled"></div>
+                <div class="glass is-filled"></div>
+                <div class="glass is-filled"></div>
+                <div class="glass is-filled"></div>
+                <div class="glass"></div>
+                <div class="glass"></div>
+            </div>
+
+            <h3 class="h3" style="margin-top: var(--s-4); margin-bottom: var(--s-2);">What to drink</h3>
+            <ul style="margin: 0 0 var(--s-3) var(--s-4); padding: 0; font-size: 14px; line-height: 1.7;">
+                <li><strong>Plain water:</strong> 6–8 glasses daily.</li>
+                <li><strong>Coconut water:</strong> 1–2 glasses (electrolytes and potassium support APLA blood flow).</li>
+                <li><strong>Buttermilk (lactose-free):</strong> if tolerated; aids digestion.</li>
+                <li><strong>Lemon water:</strong> aids iron absorption; vitamin C boost.</li>
+                <li><strong>Ginger tea (mild):</strong> anti-inflammatory; 1–2 cups maximum.</li>
+                <li><strong>Chamomile tea:</strong> in moderation; safe in 2nd and 3rd trimester.</li>
+                <li><strong>Avoid:</strong> sugary drinks, excess caffeine, unpasteurised juices.</li>
+            </ul>
+        </section>
+
+        <!-- ===================================================
+             SECTION DIVIDER — REFERENCE
+             =================================================== -->
+        <div class="section-divider" role="separator" aria-label="Reference data">
+            <span class="eyebrow">Detailed nutrition · reference</span>
+        </div>
+
+        <!-- ----- Daily targets ----------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title"><span data-dyn="nutrition-heading">Daily Nutrition Targets (2nd Trimester, 26 Weeks)</span></h2>
+                <span class="panel__trajectory">Some via food, some via supplements</span>
+            </header>
+
+            <p class="panel__summary">
+                Targets are tailored to the current stage, age, and conditions. Some are met through food, others through prescribed supplements.
+            </p>
+
+            <div class="grid-3" style="margin-top: var(--s-3);">
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Daily calories</p>
+                    <p class="kpi-tile__value">2,200–2,400<span class="unit">kcal</span></p>
+                    <p class="kpi-tile__sub">Per day</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Protein</p>
+                    <p class="kpi-tile__value">75–80<span class="unit">g</span></p>
+                    <p class="kpi-tile__sub">Per day</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Iron</p>
+                    <p class="kpi-tile__value">27<span class="unit">mg</span></p>
+                    <p class="kpi-tile__sub">Minimum daily</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Calcium</p>
+                    <p class="kpi-tile__value">1,000<span class="unit">mg</span></p>
+                    <p class="kpi-tile__sub">Per day (supplemented)</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Folate</p>
+                    <p class="kpi-tile__value">600<span class="unit">µg</span></p>
+                    <p class="kpi-tile__sub">Daily, via Folicomax</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">DHA / Omega-3</p>
+                    <p class="kpi-tile__value">200–300<span class="unit">mg</span></p>
+                    <p class="kpi-tile__sub">Per day</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Vitamin D</p>
+                    <p class="kpi-tile__value">600–4,000<span class="unit">IU</span></p>
+                    <p class="kpi-tile__sub">Daily</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Fibre</p>
+                    <p class="kpi-tile__value">25–30<span class="unit">g</span></p>
+                    <p class="kpi-tile__sub">Per day</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Hydration</p>
+                    <p class="kpi-tile__value">8–10<span class="unit">glasses</span></p>
+                    <p class="kpi-tile__sub">Per day</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- Iron-rich foods chart ----------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Iron-rich foods reference</h2>
+                <span class="panel__trajectory">Heme 15–35% · Non-heme 2–20%</span>
+            </header>
+
+            <p class="panel__summary">
+                Heme iron (animal sources) is better absorbed (15–35%). Non-heme iron (plant sources) needs vitamin C to boost absorption (2–20%).
+            </p>
+
+            <div class="grid-2" style="margin-top: var(--s-3);">
+                <div>
+                    <p class="eyebrow" style="margin-bottom: var(--s-2);">Animal sources · heme iron</p>
+                    <ul class="food-list">
+                        <li><span class="name">Chicken liver</span><span class="num">11 mg / 100 g</span></li>
+                        <li><span class="name">Mutton</span><span class="num">3.5 mg / 100 g</span></li>
+                        <li><span class="name">Fish (pomfret)</span><span class="num">1.5 mg / 100 g</span></li>
+                        <li><span class="name">Chicken</span><span class="num">1.3 mg / 100 g</span></li>
+                        <li><span class="name">Egg (one)</span><span class="num">1.2 mg</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="eyebrow" style="margin-bottom: var(--s-2);">Plant sources · non-heme iron</p>
+                    <ul class="food-list">
+                        <li><span class="name">Garden cress seeds (halim)</span><span class="num">100 mg / 100 g</span></li>
+                        <li><span class="name">Jaggery (gur)</span><span class="num">11 mg / 100 g</span></li>
+                        <li><span class="name">Dried dates</span><span class="num">8 mg / 100 g</span></li>
+                        <li><span class="name">Bajra (pearl millet)</span><span class="num">8 mg / 100 g</span></li>
+                        <li><span class="name">Rajma (kidney beans)</span><span class="num">6.7 mg / 100 g</span></li>
+                        <li><span class="name">Chana (chickpeas)</span><span class="num">6.2 mg / 100 g</span></li>
+                        <li><span class="name">Ragi (finger millet)</span><span class="num">3.9 mg / 100 g</span></li>
+                        <li><span class="name">Spinach (palak)</span><span class="num">2.7 mg / 100 g</span></li>
+                        <li><span class="name">Beetroot</span><span class="num">0.8 mg / 100 g</span></li>
+                        <li><span class="name">Pomegranate</span><span class="num">0.3 mg + absorption aid</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout" style="margin-top: var(--s-3);">
+                <span class="callout__title">Note</span>
+                Garden cress seeds (halim) are extraordinarily iron-rich. Add to salads, yoghurt alternatives, or use in traditional halim recipes.
+            </div>
+        </section>
+
+        <!-- ----- Meal ideas ----------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Iron-boosting meal ideas</h2>
+                <span class="panel__trajectory">Wheat-free · milk-free</span>
+            </header>
+
+            <p class="panel__summary">
+                Real meals from Indian kitchens, all wheat-free and milk-free, designed to maximise iron and protein. Pair each with vitamin C sources for better absorption.
+            </p>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Browse all meal options</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>Breakfast (pick one)</h4>
+                    <ul>
+                        <li><strong>Ragi (finger millet) dosa</strong> — with coconut chutney and 1 boiled egg. Iron, protein, minerals.</li>
+                        <li><strong>Poha (flattened rice)</strong> — with peanuts, curry leaves, lemon, carrots. Iron + vitamin C boost.</li>
+                        <li><strong>Oats porridge</strong> — almond milk, dates, walnuts. Iron + omega-3.</li>
+                        <li><strong>Bajra (millet) roti</strong> — with spinach sabzi. High iron content.</li>
+                        <li><strong>Rice idli with sambar</strong> — dal-rich sambar, orange juice on side. Iron + folate.</li>
+                        <li><strong>Quinoa upma</strong> — with vegetables and a boiled egg. Complete protein + iron.</li>
+                    </ul>
+
+                    <h4>Lunch (rice-based)</h4>
+                    <ul>
+                        <li><strong>Rice + dal (rajma / chole / moong)</strong> — green leafy sabzi, raw salad. Iron + plant protein.</li>
+                        <li><strong>Brown rice pulao</strong> — paneer, coconut-based raita. Protein + calcium alternative.</li>
+                        <li><strong>Jowar (sorghum) roti</strong> — chicken curry, beetroot salad. Iron, B12, antioxidants.</li>
+                        <li><strong>Rice + fish curry</strong> — pomfret or rohu, spinach, lemon. Iron, DHA, vitamin C.</li>
+                        <li><strong>Moong khichdi</strong> — rice, moong dal, ghee, cucumber raita. Easy protein, easy digestion.</li>
+                        <li><strong>Rice + chana masala</strong> — chickpea curry, baingan sabzi. Plant iron + folate.</li>
+                    </ul>
+
+                    <h4>Evening snack (choose one)</h4>
+                    <ul>
+                        <li><strong>Roasted chana + jaggery</strong> — handful of roasted chickpeas. Iron, natural sweetness.</li>
+                        <li><strong>Dates and almonds</strong> — 3–4 dates, 5–6 almonds. High iron, healthy fats.</li>
+                        <li><strong>Fruit plate</strong> — pomegranate, orange, guava. Iron + vitamin C synergy.</li>
+                        <li><strong>Sprouts chaat</strong> — moong or chana sprouts, lemon, chaat masala. Iron, folate, probiotics.</li>
+                        <li><strong>Roasted sweet potato</strong> — chaat masala. Iron, fibre, beta-carotene.</li>
+                        <li><strong>Til (sesame) laddu</strong> — home-made with jaggery. Iron, calcium, healthy fats.</li>
+                    </ul>
+
+                    <h4>Dinner</h4>
+                    <ul>
+                        <li><strong>Rice + palak dal</strong> — spinach lentil curry, grilled chicken. Iron + protein doubled.</li>
+                        <li><strong>Rice + egg curry</strong> — 3 scrambled eggs, baingan bharta. High protein + iron.</li>
+                        <li><strong>Oats khichdi</strong> — oats, moong, mixed vegetables. Fibre-rich, easily digestible.</li>
+                        <li><strong>Rice + rajma (kidney beans)</strong> — onion, tomato, salad. Plant-based iron + folate.</li>
+                        <li><strong>Ragi roti + mutton or chicken</strong> — lean meat curry, green beans. Iron, B12, heme iron.</li>
+                        <li><strong>Rice + methi (fenugreek) dal</strong> — spinach greens, boiled egg. Iron-boosting combination.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- Anti-inflammatory foods ----------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Anti-inflammatory foods for APLA</h2>
+                <span class="panel__trajectory">Diet supports Ecosprin therapy</span>
+            </header>
+
+            <p class="panel__summary">
+                APLA increases clotting risk. An anti-inflammatory diet supports blood flow, reduces systemic inflammation, and complements the Ecosprin regimen.
+            </p>
+
+            <div class="twocol">
+                <div class="col-include">
+                    <h3>Foods to include</h3>
+                    <ul>
+                        <li>Fatty fish (salmon, mackerel, sardines) — omega-3 reduces inflammation.</li>
+                        <li>Turmeric (haldi) with black pepper — curcumin is a natural anti-inflammatory.</li>
+                        <li>Ginger — anti-inflammatory; aids digestion.</li>
+                        <li>Garlic — immune modulation; natural antibiotic.</li>
+                        <li>Leafy greens (spinach, methi, fenugreek) — antioxidants and folate.</li>
+                        <li>Berries (when available) — polyphenols and antioxidants.</li>
+                        <li>Walnuts and almonds — omega-3 and vitamin E.</li>
+                        <li>Olive oil or mustard oil — healthy monounsaturated fats.</li>
+                        <li>Onions — quercetin (natural anti-inflammatory).</li>
+                        <li>Tomatoes — lycopene (antioxidant).</li>
+                    </ul>
+                </div>
+                <div class="col-avoid">
+                    <h3>Foods to limit or avoid</h3>
+                    <ul>
+                        <li>Refined sugar — promotes inflammation and blood sugar spikes.</li>
+                        <li>Processed foods — trans fats and preservatives.</li>
+                        <li>Excess salt — can elevate blood pressure.</li>
+                        <li>Wheat products — already restricted; can promote inflammation.</li>
+                        <li>Dairy milk — already restricted; can promote inflammation in some.</li>
+                        <li>Excess caffeine — limit to 200 mg per day (about one small cup of coffee).</li>
+                        <li>Alcohol — interacts with Ecosprin; increases clotting risk.</li>
+                        <li>Raw or undercooked meat or fish — infection risk in pregnancy.</li>
+                        <li>High-mercury fish — swordfish, king mackerel, shark.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout callout--note" style="margin-top: var(--s-4);">
+                <span class="callout__title">Why it matters</span>
+                APLA causes the immune system to produce antibodies against phospholipids, making blood more prone to clotting. Ecosprin prevents clots pharmacologically; the diet supports natural regulatory mechanisms. Omega-3s thin blood naturally, turmeric reduces systemic inflammation, and antioxidants protect endothelial cells.
+            </div>
+        </section>
+
+        <!-- ----- Dietary restrictions overview ----------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Dietary restrictions overview</h2>
+                <span class="panel__trajectory">Wheat-free · milk-free</span>
+            </header>
+
+            <p class="panel__summary">
+                These restrictions help manage APLA inflammation and support nutrient absorption. Calcium needs are met through Rotacum and DIP SHCAL-D3.
+            </p>
+
+            <div class="callout callout--alert">
+                <span class="callout__title">No wheat products</span>
+                Avoid roti, bread, pasta, naan, biscuits, cakes, wheat-based snacks. Use rice, jowar (sorghum), bajra (pearl millet), ragi (finger millet), oats, quinoa, or buckwheat instead.
+            </div>
+
+            <div class="callout callout--alert" style="margin-top: var(--s-3);">
+                <span class="callout__title">No milk</span>
+                Avoid cow milk, buffalo milk, regular dairy. Coconut milk, almond milk, or soy milk are alternatives if approved by the doctor. Continue prescribed calcium supplements (Rotacum and DIP SHCAL-D3) to meet daily calcium needs.
+            </div>
+
+            <div class="callout callout--note" style="margin-top: var(--s-3);">
+                <span class="callout__title">Iron-rich focus</span>
+                Hb is still below 12 g/dL. Prioritise iron-rich foods and combine with vitamin C for better absorption.
+            </div>
+
+            <div class="callout callout--watch" style="margin-top: var(--s-3);">
+                <span class="callout__title">Anti-inflammatory priority</span>
+                APLA benefits from an anti-inflammatory diet. Focus on omega-3-rich foods, turmeric, ginger, and antioxidant-rich vegetables to support blood flow and reduce clotting risk.
+            </div>
+        </section>
+
+        <!-- ----- Expert opinion (kept as accordion, ID preserved) ----------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Expert nutritional opinion</h2>
+                <span class="panel__trajectory">Long-form reference</span>
+            </header>
+
+            <p class="panel__summary">
+                The wheat-free, milk-free pattern combined with APLA and iron-deficiency anemia calls for a strategically designed diet. This plan prioritises iron absorption through vitamin C pairing, adequate protein through dal, legumes, eggs, meat and protein powder, and replaces dairy calcium through supplements plus calcium-rich non-dairy foods like ragi, sesame seeds, and almonds. The anti-inflammatory layer (omega-3, turmeric, ginger) complements Ecosprin therapy. The clinical goal is raising hemoglobin above 11.5 g/dL by the 3rd trimester, when blood volume peaks and fetal demand increases.
+            </p>
+
+            <button type="button" class="expand-btn accordion-trigger" onclick="toggleExpertDetails()" id="expertDetailsTrigger" aria-expanded="false" style="background: transparent; color: inherit;">
+                <span>Read detailed analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <div class="accordion-content" id="expertDetails">
+                <div class="accordion-content-inner expert-opinion detailed">
+                    <h4>Nutritional analysis by condition</h4>
+                    <p>
+                        <strong>Iron-deficiency anemia (Hb 10.2 g/dL):</strong> Hemoglobin is significantly below the pregnancy target of 12+ g/dL. This affects oxygen delivery to placenta and fetus. Every meal includes iron-rich foods paired with vitamin C. Fexacta (iron + folate) addresses this directly; dietary iron (especially heme iron from eggs and meat) provides additional absorption pathways. Timing iron away from calcium is critical — they compete for absorption.
+                    </p>
+                    <p>
+                        <strong>APLA (Antiphospholipid Antibodies):</strong> The immune system produces antibodies that attack phospholipids in cell membranes, increasing thrombotic risk. Ecosprin 150 mg provides anticoagulation pharmacologically; diet plays a supporting role. Omega-3 fatty acids (fish, walnuts) naturally thin blood. Turmeric and ginger are evidence-backed anti-inflammatories. Adequate hydration maintains blood flow. Multi-pronged approach is why both medication and dietary modifications are in place.
+                    </p>
+                    <p>
+                        <strong>Wheat restriction:</strong> Likely addresses gluten sensitivity (which elevates inflammation markers) or a need to reduce overall inflammation. Wheat-free alternatives (ragi, bajra, jowar, quinoa, oats) provide equal or superior micronutrient profiles. Ragi is iron-rich (3.9 mg/100 g), calcium-rich (344 mg/100 g), and anti-inflammatory.
+                    </p>
+                    <p>
+                        <strong>Dairy restriction:</strong> Milk avoidance may reflect lactose sensitivity, casein allergy, or inflammation management. Calcium needs (1,000 mg per day) are met through Rotacum, DIP SHCAL-D3, and dietary sources: ragi, sesame seeds, almonds, fortified plant milks. Don't rely solely on food for calcium.
+                    </p>
+                    <p>
+                        <strong>Advanced maternal age (40):</strong> Slightly higher protein need (75–80 g/day vs. 71 g for younger women). Nutriease Protein Powder (2 scoops twice daily = 40 g protein) covers about half; the rest comes from food. DHA via the protein powder is critical for fetal brain and eye development.
+                    </p>
+
+                    <h4>Why this supplement schedule works</h4>
+                    <p><strong>HCQS immediately before food:</strong> ensures optimal stomach pH for absorption while limiting GI upset.</p>
+                    <p><strong>Morning iron + afternoon calcium:</strong> Iron and calcium both use divalent cation transporters. Two hours apart, they don't compete. Iron in the morning with vitamin C maximises absorption.</p>
+                    <p><strong>MEGA CV twice daily:</strong> Multivitamins are spread across meals to improve absorption and reduce GI burden.</p>
+                    <p><strong>Protein powder with meals:</strong> Better tolerated and the protein is used more efficiently. DHA is fat-soluble; food helps absorption.</p>
+                    <p><strong>Ecosprin at night:</strong> Aspirin is often dosed once daily in the evening to align with circadian clotting risk.</p>
+
+                    <h4>Third-trimester adjustments</h4>
+                    <p><strong>Around week 30:</strong> Blood volume is up 40% in pregnancy, mostly in trimester 3. Hemoglobin will dilute further; keep iron intake high. The doctor may increase Fexacta or add IV iron if Hb drops below 10.</p>
+                    <p><strong>Around week 35:</strong> Fetal calcium demand peaks. Keep Rotacum + DIP SHCAL-D3 compliance perfect. DHA stays at 200–300 mg per day.</p>
+                    <p><strong>Folate stays high:</strong> Folicomax continues up to delivery and during breastfeeding.</p>
+
+                    <h4>Pre-delivery (weeks 35–40)</h4>
+                    <p>Maintain all supplements as prescribed. Increase calorie intake slightly if weight gain has been slow. Keep iron intake high in the last 4 weeks to prepare for delivery blood loss. Continue anti-inflammatory diet.</p>
+
+                    <h4>Postpartum</h4>
+                    <p><strong>First 6 weeks (recovery):</strong> Continue all supplements. Add extra protein for tissue repair and milk supply. Iron supplementation remains critical. Wheat may be reintroduced if there's no clinical indication to restrict long-term. Dairy can be reintroduced if tolerated.</p>
+                    <p><strong>Breastfeeding:</strong> Protein needs increase to 1.3 g/kg (vs. 1.1 g/kg in pregnancy). Calorie needs rise by 500 kcal/day. DHA continues. Iron continues until hemoglobin normalises.</p>
+
+                    <h4>Bottom line</h4>
+                    <p>This is a precision plan that compensates for APLA and anemia while supporting a healthy 3rd trimester. Recheck hemoglobin at 28 weeks; if below 11, discuss IV iron with the doctor before week 32.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===================================================
+         FOOTER
+         =================================================== -->
+    <footer class="footer container" role="contentinfo">
+        <p>
+            NBB Health Dashboard ·
+            <span data-dyn-last-updated="long">Last updated: 25 April 2026</span>
+        </p>
+        <p>Reference only. Confirm any change with your doctor. · Built for Nikita and HB.</p>
+    </footer>
 
     <script>
-        function toggleExpertDetails() {
-            const details = document.getElementById('expertDetails');
-            const btn = event.target;
+        // Accordion toggle — same contract as index.html.
+        function toggleAccordion(trigger) {
+            const content = trigger.nextElementSibling;
+            const isOpen = trigger.classList.toggle('open');
+            content.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
 
-            if (details.classList.contains('show')) {
-                details.classList.remove('show');
-                btn.textContent = 'Read Detailed Analysis';
-            } else {
-                details.classList.add('show');
-                btn.textContent = 'Hide Detailed Analysis';
-            }
+        // Expert details — preserve the existing public function name and #expertDetails id
+        // so any previously-saved bookmarks or references continue to work.
+        function toggleExpertDetails() {
+            const trigger = document.getElementById('expertDetailsTrigger');
+            const details = document.getElementById('expertDetails');
+            if (!trigger || !details) return;
+            const isOpen = trigger.classList.toggle('open');
+            details.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            const label = trigger.querySelector('span:first-child');
+            if (label) label.textContent = isOpen ? 'Hide detailed analysis' : 'Read detailed analysis';
         }
     </script>
+
+    <!-- Dynamic GA / trimester / footer engine — DO NOT MOVE -->
+    <script src="data/dashboard-dynamic.js"></script>
 </body>
 </html>

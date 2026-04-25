@@ -1,0 +1,13 @@
+# Local rollback backups — never commit these
+*.bak-pre-*
+*.bak
+
+# macOS clutter
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~

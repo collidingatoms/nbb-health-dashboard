@@ -3,1243 +3,903 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pregnancy Tracker - NBB Health Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <meta name="description" content="Personal health dashboard for Nikita Bhagat — pregnancy progress, medical timeline, and milestones for the current pregnancy.">
+    <title>NBB Health Dashboard — Pregnancy</title>
+
+    <!-- Shared design system (single source of truth — see assets/css/pulse-dashboard.css) -->
+    <link rel="stylesheet" href="assets/css/pulse-dashboard.css">
+
+    <!-- Page-specific styles. Kept minimal. -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #FDF2F8;
-            color: #202124;
-            line-height: 1.6;
-        }
-
-        /* Navigation */
-        nav {
-            background-color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        nav .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        nav h1 {
-            font-size: 1.5rem;
-            color: #BE185D;
-            font-weight: 700;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 2rem;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #5F6368;
-            font-weight: 500;
-            transition: color 0.2s;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-        }
-
-        nav a:hover {
-            color: #BE185D;
-        }
-
-        nav a.active {
-            color: #BE185D;
-            background-color: #FCE4EC;
-        }
-
-        /* Main Content */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .page-header {
-            margin-bottom: 3rem;
-        }
-
-        .page-header h2 {
-            font-size: 2rem;
-            color: #BE185D;
-            margin-bottom: 0.5rem;
-        }
-
-        .page-header p {
-            color: #5F6368;
-            font-size: 1.1rem;
-        }
-
-        /* Patient Info Bar */
-        .patient-info {
-            background: white;
-            padding: 1.5rem 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            margin-bottom: 2rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-
-        .info-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .info-label {
-            color: #5F6368;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-        }
-
-        .info-value {
-            color: #202124;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        .info-value.highlight {
-            color: #BE185D;
-            font-weight: 700;
-        }
-
-        /* Section Title */
-        .section-title {
-            font-size: 1.4rem;
-            color: #BE185D;
-            margin-top: 2.5rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 3px solid #FCE4EC;
-        }
-
-        /* Progress Bar Section */
-        .progress-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            margin-bottom: 2rem;
-        }
-
-        .progress-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
+        /* Trimester progress bar — restyled to a hairline track + sage fill,
+           but the markup keeps data-dyn-progress and data-dyn-trimester so
+           dashboard-dynamic.js continues to find them. */
         .progress-stat {
-            text-align: center;
+            text-align: left;
         }
-
-        .progress-stat-label {
-            color: #5F6368;
-            font-size: 0.95rem;
+        .progress-stat__label {
+            font-family: var(--font-sans);
+            font-size: 11px;
+            color: var(--ink-tertiary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
+            letter-spacing: 1.5px;
+            margin-bottom: var(--s-2);
+        }
+        .progress-stat__value {
+            font-family: var(--font-serif);
+            font-size: 36px;
+            line-height: 1.1;
+            color: var(--ink-primary);
+            margin-bottom: var(--s-1);
+        }
+        .progress-stat__sub {
+            font-size: 13px;
+            color: var(--ink-secondary);
         }
 
-        .progress-stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #BE185D;
-            margin-bottom: 0.25rem;
-        }
-
-        .progress-stat-subtext {
-            color: #5F6368;
-            font-size: 0.9rem;
-        }
-
-        /* Visual Progress Bar */
         .visual-progress {
             width: 100%;
-            height: 24px;
-            background-color: #F8F9FA;
-            border-radius: 12px;
+            height: 10px;
+            background: var(--hairline);
+            border-radius: 5px;
             overflow: hidden;
-            margin-bottom: 1rem;
+            margin: var(--s-4) 0 var(--s-2);
         }
-
         .progress-fill {
+            display: block;
             height: 100%;
-            background: linear-gradient(90deg, #EC407A 0%, #AB47BC 50%, #7C3AED 100%);
+            background: var(--sage);
             width: 62.5%;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 1rem;
-            color: white;
-            font-weight: 700;
-            font-size: 0.85rem;
+            color: transparent;       /* hide the "26/40" text inside the bar; the labels say it */
+            font-size: 0;
+            border-radius: 5px;
+            transition: width 0.3s ease;
         }
 
         .trimester-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-            color: #5F6368;
+            margin-top: var(--s-3);
+            font-size: 12px;
+            color: var(--ink-secondary);
         }
-
         .trimester-label {
             text-align: center;
             flex: 1;
+            padding: 0 var(--s-2);
+        }
+        .trimester-label strong {
+            display: block;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            color: var(--ink-primary);
+            font-size: 13px;
+        }
+        .trimester-label.current-trimester {
+            color: var(--ink-primary);
+        }
+        .trimester-label.current-trimester strong {
+            color: var(--sage);
+        }
+        .trimester-label .dyn-check {
+            color: var(--sage);
+            font-weight: 600;
         }
 
-        /* Timeline */
+        /* Timeline — vertical rule with marker and card.
+           dashboard-dynamic.js requires .timeline-item, .timeline-date, .timeline-marker. */
         .timeline {
             position: relative;
-            padding: 2rem 0;
+            padding: var(--s-3) 0 0;
         }
-
         .timeline::before {
             content: '';
             position: absolute;
-            left: 24px;
+            left: 19px;
             top: 0;
             bottom: 0;
-            width: 3px;
-            background: linear-gradient(180deg, #EC407A 0%, #AB47BC 50%, #7C3AED 100%);
+            width: 1px;
+            background: var(--hairline);
         }
-
         .timeline-item {
-            margin-bottom: 1.5rem;
-            padding-left: 80px;
             position: relative;
+            padding-left: 56px;
+            margin-bottom: var(--s-4);
         }
-
         .timeline-marker {
             position: absolute;
-            left: 0;
-            top: 0;
-            width: 48px;
-            height: 48px;
-            background: white;
+            left: 8px;
+            top: 4px;
+            width: 22px;
+            height: 22px;
+            background: var(--paper);
             border-radius: 50%;
-            border: 3px solid #BE185D;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+            border: 2px solid var(--ink-tertiary);
+            display: block;
+            font-size: 0;        /* swallow the legacy emoji content */
+            line-height: 1;
+            color: transparent;
             z-index: 2;
         }
-
         .timeline-marker.passed {
-            background: #BE185D;
-            color: white;
+            background: var(--sage);
+            border-color: var(--sage);
         }
-
         .timeline-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-left: 4px solid #7C3AED;
+            background: var(--paper);
+            border-radius: var(--r-block);
+            padding: var(--s-3);
+            border-left: 3px solid var(--hairline);
         }
-
         .timeline-date {
-            font-weight: 700;
-            color: #BE185D;
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--ink-tertiary);
+            margin-bottom: var(--s-1);
+            font-variant-numeric: tabular-nums;
         }
-
         .timeline-title {
+            font-family: var(--font-sans);
             font-weight: 600;
-            color: #202124;
-            font-size: 1.05rem;
-            margin-bottom: 0.5rem;
+            color: var(--ink-primary);
+            font-size: 15px;
+            margin-bottom: var(--s-1);
         }
-
         .timeline-detail {
-            color: #5F6368;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            color: var(--ink-secondary);
+            font-size: 14px;
+            line-height: 1.55;
         }
 
-        /* Prescriptions Tracker */
+        /* Prescriptions table — keep .rx-table class so any external links survive,
+           but it now uses Pulse data-table styling. */
         .rx-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             overflow-x: auto;
         }
-
         .rx-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 13px;
         }
-
         .rx-table th {
-            background-color: #F8F9FA;
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: #202124;
-            border-bottom: 2px solid #E8EAED;
-        }
-
-        .rx-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #E8EAED;
-            color: #5F6368;
-        }
-
-        .rx-table tr:hover {
-            background-color: #FDF2F8;
-        }
-
-        .drug-name {
-            font-weight: 600;
-            color: #202124;
-        }
-
-        .status-active {
-            background-color: #E6F4EA;
-            color: #34A853;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .status-stopped {
-            background-color: #F3F3F3;
-            color: #5F6368;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .status-pending {
-            background-color: #FFF3E0;
-            color: #F57C00;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        /* Weight Chart */
-        .chart-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            margin-bottom: 2rem;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 300px;
-            margin-bottom: 1rem;
-        }
-
-        svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .chart-legend {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid #E8EAED;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 2px;
-        }
-
-        /* Risk Factors */
-        .risk-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .risk-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-top: 4px solid #BE185D;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .risk-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .risk-card.high-attention {
-            border-top: 4px solid #EA4335;
-        }
-
-        .risk-card.monitor {
-            border-top: 4px solid #FBBC04;
-        }
-
-        .risk-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .risk-badge {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
+            font-family: var(--font-sans);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--ink-tertiary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1.5px;
+            text-align: left;
+            padding: 0 var(--s-2) var(--s-2);
+            border-bottom: 1px solid var(--hairline);
+            white-space: nowrap;
         }
-
-        .badge-high {
-            background-color: #FFEBEE;
-            color: #C62828;
+        .rx-table td {
+            padding: 10px var(--s-2);
+            border-bottom: 1px solid var(--hairline);
+            color: var(--ink-primary);
         }
+        .rx-table tr:last-child td { border-bottom: 0; }
+        .drug-name { font-weight: 500; }
+        .status-active   { color: var(--sage); }
+        .status-stopped  { color: var(--ink-tertiary); }
+        .status-pending  { color: var(--ink-tertiary); }
 
-        .badge-monitor {
-            background-color: #FFF3E0;
-            color: #E65100;
-        }
-
-        .risk-title {
-            font-weight: 700;
-            color: #202124;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .risk-summary {
-            color: #5F6368;
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
-        }
-
-        .expand-toggle {
-            color: #7C3AED;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .risk-details {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            color: #5F6368;
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        .risk-details.expanded {
-            max-height: 500px;
-        }
-
-        .risk-details p {
-            margin-bottom: 0.75rem;
-        }
-
-        .risk-details strong {
-            color: #202124;
-        }
-
-        /* Milestones */
+        /* Milestone cards — preserved class names for dashboard-dynamic.js current-state hook */
         .milestones-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--s-3);
         }
-
         .milestone-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-left: 4px solid #7C3AED;
+            background: var(--surface);
+            border-radius: var(--r-card);
+            padding: var(--s-3);
+            border-left: 3px solid var(--hairline);
         }
-
         .milestone-week {
-            color: #7C3AED;
-            font-weight: 700;
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            color: var(--ink-primary);
+            font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1.5px;
+            margin-bottom: var(--s-2);
         }
-
         .milestone-items {
-            color: #5F6368;
-            font-size: 0.95rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            color: var(--ink-primary);
+            font-size: 14px;
         }
-
         .milestone-items li {
-            margin-bottom: 0.5rem;
-            margin-left: 1.5rem;
+            padding: 4px 0 4px 14px;
+            position: relative;
+            line-height: 1.5;
+        }
+        .milestone-items li::before {
+            content: "·";
+            position: absolute;
+            left: 0;
+            color: var(--ink-tertiary);
+            font-weight: 700;
         }
 
-        /* Footer */
-        footer {
-            background-color: white;
-            padding: 2rem;
-            margin-top: 3rem;
-            border-top: 1px solid #E8EAED;
-            text-align: center;
-            color: #5F6368;
-            font-size: 0.9rem;
+        /* Weight SVG container */
+        .weight-chart {
+            margin-top: var(--s-3);
+        }
+        .weight-chart svg {
+            width: 100%;
+            height: auto;
+            max-height: 320px;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
-            nav .container {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-
-            nav ul {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-
-            .page-header h2 {
-                font-size: 1.5rem;
-            }
-
-            .progress-row {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .progress-stat-value {
-                font-size: 2rem;
-            }
-
-            .timeline::before {
-                left: 12px;
-            }
-
-            .timeline-item {
-                padding-left: 60px;
-            }
-
-            .timeline-marker {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
-
-            .patient-info {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .risk-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .milestones-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .rx-table {
-                font-size: 0.8rem;
-            }
-
-            .rx-table th,
-            .rx-table td {
-                padding: 0.75rem 0.5rem;
-            }
+            .timeline::before { left: 13px; }
+            .timeline-item { padding-left: 44px; }
+            .timeline-marker { left: 4px; width: 18px; height: 18px; }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="container">
-            <h1>NBB Health Dashboard</h1>
-            <ul>
-                <li><a href="index.html">Blood Work</a></li>
-                <li><a href="pregnancy.html" class="active">Pregnancy</a></li>
-                <li><a href="ultrasound.html">Ultrasounds</a></li>
-                <li><a href="nutrition.html">Diet & Nutrition</a></li>
+
+    <!-- =====================================================
+         HEADER BAND — see assets/partials/header-pattern.html
+         ===================================================== -->
+    <header class="header-band">
+        <nav class="container nav" aria-label="Primary">
+            <a href="index.html" class="nav__brand">NBB Health Dashboard</a>
+            <ul class="nav__list">
+                <li><a href="index.html"      class="nav__link">Blood work</a></li>
+                <li><a href="pregnancy.html"  class="nav__link is-active" aria-current="page">Pregnancy</a></li>
+                <li><a href="ultrasound.html" class="nav__link">Ultrasounds</a></li>
+                <li><a href="nutrition.html"  class="nav__link">Nutrition</a></li>
             </ul>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h2>Pregnancy Tracker</h2>
-            <p>Comprehensive monitoring and medical history for current pregnancy</p>
-        </div>
-
-        <!-- Patient Information -->
-        <div class="patient-info">
-            <div class="info-item">
-                <span class="info-label">Patient Name</span>
-                <span class="info-value">Nikita Bhagat</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Age / Blood Group</span>
-                <span class="info-value">40 years / A+</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Last Menstrual Period (LMP)</span>
-                <span class="info-value highlight">20 Oct 2025</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Expected Delivery Date (EDD)</span>
-                <span class="info-value highlight">27 Jul 2026</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Obstetric History</span>
-                <span class="info-value">G3P1L0A1</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Key Risk Factor</span>
-                <span class="info-value highlight">APLA Positive</span>
-            </div>
-        </div>
-
-        <!-- Section 1: Pregnancy Progress -->
-        <h2 class="section-title">Pregnancy Progress</h2>
-        <div class="progress-section">
-            <div class="progress-row">
-                <div class="progress-stat">
-                    <div class="progress-stat-label">Current Gestational Age</div>
-                    <div class="progress-stat-value">25 weeks</div>
-                    <div class="progress-stat-subtext">Second Trimester</div>
-                </div>
-                <div class="progress-stat">
-                    <div class="progress-stat-label">Days Until Delivery</div>
-                    <div class="progress-stat-value">106</div>
-                    <div class="progress-stat-subtext">~15 weeks remaining</div>
+        </nav>
+        <div class="patient-strip" aria-label="Patient identity">
+            <div class="container patient-strip__inner">
+                <span class="patient-strip__name">Nikita Bhagat</span>
+                <span class="patient-strip__sep">·</span>
+                <span>40</span>
+                <span class="patient-strip__sep">·</span>
+                <span>A+</span>
+                <span class="patient-strip__sep">·</span>
+                <span>G3P1L0A1</span>
+                <span class="patient-strip__sep">·</span>
+                <span data-dyn="ga-wd">26w 0d</span>
+                <span class="patient-strip__sep">·</span>
+                <span>EDD <span data-dyn="edd-short">27 Jul 2026</span></span>
+                <div class="patient-strip__chips">
+                    <span class="patient-strip__chip">APLA positive</span>
+                    <span class="patient-strip__chip">Iron deficiency anemia</span>
+                    <span class="patient-strip__chip">Advanced maternal age</span>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <div class="visual-progress">
-                <div class="progress-fill">25/40</div>
+    <main class="container">
+
+        <!-- ===================================================
+             PAGE TITLE
+             =================================================== -->
+        <section class="page-title">
+            <p class="eyebrow page-title__eyebrow">Pregnancy</p>
+            <h1 class="display-1">Pregnancy tracker</h1>
+            <p class="page-title__sub">Where we are this fortnight, what's coming up, and the full medical timeline of the current pregnancy.</p>
+        </section>
+
+        <!-- ===================================================
+             NOW BAND — current week, this fortnight, next visit
+             =================================================== -->
+        <section class="now-card" aria-labelledby="now-heading">
+            <p class="eyebrow now-card__eyebrow" id="now-heading">Now</p>
+            <p class="now-card__lede">
+                <span data-dyn="ga-wd">26w 0d</span>
+                <span class="sep">·</span>
+                <span data-dyn="trimester-name">Second Trimester</span>
+                <span class="sep">·</span>
+                <span data-dyn="weeks-remaining">~14 weeks remaining</span>
+            </p>
+
+            <p class="eyebrow now-card__watch-label">This fortnight</p>
+            <ul class="now-card__watch-list">
+                <li class="is-watch"><strong>Next visit · 13 May 2026</strong> — Avni Clinic, Dr. Nisha Aggarwal. Growth-scan scheduling, platelet recheck, iron and Hb recheck.</li>
+                <li class="is-good"><strong>GCT passed at 24w</strong> — 111 mg/dL, well below threshold.</li>
+                <li><strong>Confirm regular fetal movement</strong> — kick counts daily; flag any reduction to the OB.</li>
+            </ul>
+        </section>
+
+        <!-- ===================================================
+             PREGNANCY PROGRESS — restyled, hooks preserved
+             =================================================== -->
+        <section class="panel" aria-labelledby="progress-heading">
+            <header class="panel__head">
+                <h2 class="panel__title" id="progress-heading">Pregnancy progress</h2>
+                <span class="panel__trajectory" data-dyn="trimester-short">2nd Trimester</span>
+            </header>
+
+            <div class="grid-2" style="margin-top: var(--s-3);">
+                <div class="progress-stat">
+                    <div class="progress-stat__label">Current gestational age</div>
+                    <div class="progress-stat__value" data-dyn="ga-short">26 weeks</div>
+                    <div class="progress-stat__sub" data-dyn="trimester-name">Second Trimester</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat__label">Days until delivery</div>
+                    <div class="progress-stat__value" data-dyn="days-remaining">98</div>
+                    <div class="progress-stat__sub" data-dyn="weeks-remaining">~14 weeks remaining</div>
+                </div>
+            </div>
+
+            <div class="visual-progress" role="img" aria-label="Pregnancy progress, 26 of 40 weeks">
+                <span class="progress-fill" data-dyn-progress>26/40</span>
             </div>
 
             <div class="trimester-labels">
-                <div class="trimester-label">
-                    <strong>Trimester 1</strong><br>
-                    Weeks 1-12
+                <div class="trimester-label" data-dyn-trimester="1">
+                    <strong>Trimester 1</strong>
+                    Weeks 1–12
                 </div>
-                <div class="trimester-label">
-                    <strong>Trimester 2</strong><br>
-                    Weeks 13-27 ✓
+                <div class="trimester-label" data-dyn-trimester="2">
+                    <strong>Trimester 2</strong>
+                    Weeks 13–27
                 </div>
-                <div class="trimester-label">
-                    <strong>Trimester 3</strong><br>
-                    Weeks 28-40
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 2: Pregnancy Timeline -->
-        <h2 class="section-title">Medical Timeline</h2>
-        <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-marker passed">📅</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">20 Oct 2025</div>
-                    <div class="timeline-title">Last Menstrual Period (LMP)</div>
-                    <div class="timeline-detail">Pregnancy dating reference point. All gestational ages calculated from this date.</div>
+                <div class="trimester-label" data-dyn-trimester="3">
+                    <strong>Trimester 3</strong>
+                    Weeks 28–40
                 </div>
             </div>
+        </section>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🔍</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">04 Dec 2025 (6w3d)</div>
-                    <div class="timeline-title">First Ultrasound</div>
-                    <div class="timeline-detail">Single live pregnancy confirmed. Fetal heart rate: 111 bpm. Location: The Ultrasound Centre, Gurugram.</div>
+        <!-- ===================================================
+             UPCOMING MILESTONES — moved up from the bottom
+             =================================================== -->
+        <section class="panel" aria-labelledby="milestones-heading">
+            <header class="panel__head">
+                <h2 class="panel__title" id="milestones-heading">Coming up</h2>
+                <span class="panel__trajectory">Window-by-window plan</span>
+            </header>
+
+            <p class="panel__summary">
+                Forward-looking checks, scans, and decisions across the rest of the pregnancy. The current window is highlighted by the dynamic milestone engine.
+            </p>
+
+            <div class="milestones-grid" style="margin-top: var(--s-3);">
+                <div class="milestone-card">
+                    <div class="milestone-week">Weeks 26-28</div>
+                    <ul class="milestone-items">
+                        <li>Glucose tolerance test if not completed (already passed at 24w)</li>
+                        <li>Platelet count recheck (monitor declining trend)</li>
+                        <li>Confirm fetal movements are regular (kick counts)</li>
+                        <li>Begin monitoring for preeclampsia symptoms</li>
+                    </ul>
+                </div>
+
+                <div class="milestone-card">
+                    <div class="milestone-week">Weeks 28-32</div>
+                    <ul class="milestone-items">
+                        <li>Growth scan (especially important given APLA)</li>
+                        <li>Uterine artery Doppler study</li>
+                        <li>Iron and hemoglobin recheck</li>
+                        <li>Blood pressure monitoring (preeclampsia screening)</li>
+                        <li>Anemia review and optimisation</li>
+                    </ul>
+                </div>
+
+                <div class="milestone-card">
+                    <div class="milestone-week">Weeks 32-36</div>
+                    <ul class="milestone-items">
+                        <li>Weekly or biweekly monitoring with obstetrics</li>
+                        <li>Growth ultrasound and amniotic fluid assessment</li>
+                        <li>Non-stress test (NST) if indicated</li>
+                        <li>Continue Ecosprin throughout this period</li>
+                        <li>Prepare for delivery planning discussion</li>
+                    </ul>
+                </div>
+
+                <div class="milestone-card">
+                    <div class="milestone-week">Weeks 36-37</div>
+                    <ul class="milestone-items">
+                        <li>Discuss delivery timing — APLA pregnancies are typically delivered by 37–39 weeks</li>
+                        <li>Stop Ecosprin at 36 weeks to reduce bleeding risk during delivery</li>
+                        <li>Finalise delivery plan (vaginal vs. C-section)</li>
+                        <li>Confirm platelet count is adequate for labour</li>
+                        <li>Discuss management of APLA during labour</li>
+                    </ul>
+                </div>
+
+                <div class="milestone-card">
+                    <div class="milestone-week">Weeks 37-40</div>
+                    <ul class="milestone-items">
+                        <li>Likely delivery window (37–39 weeks for APLA)</li>
+                        <li>Twice-weekly monitoring if continuing past 37w</li>
+                        <li>Continuous fetal heart rate monitoring during labour</li>
+                        <li>Thromboprophylaxis during labour and postpartum</li>
+                        <li>Alert postpartum team to APLA diagnosis</li>
+                    </ul>
+                </div>
+
+                <div class="milestone-card">
+                    <div class="milestone-week">Postpartum</div>
+                    <ul class="milestone-items">
+                        <li>APLA management continues postpartum</li>
+                        <li>Hemoglobin check at 6 weeks</li>
+                        <li>Continue iron supplementation</li>
+                        <li>Monitor for postpartum preeclampsia</li>
+                        <li>Plan anticoagulation strategy with hematology</li>
+                    </ul>
                 </div>
             </div>
+        </section>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">💊</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">05 Dec 2025 (6.2 weeks)</div>
-                    <div class="timeline-title">First Prescription</div>
-                    <div class="timeline-detail"><strong>Clinic:</strong> Avni Clinic, Dr. Nisha Aggarwal. <strong>Medications:</strong> Ecosprin 150mg, Folicomax, HCQS 300mg, Duphaston. <strong>Labs:</strong> Hb 11.3 g/dL. Investigations ordered: Beta HCG, ANA, APLA testing.</div>
-                </div>
-            </div>
+        <!-- ===================================================
+             WEIGHT PROGRESS — restyled SVG, same data
+             =================================================== -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Weight progress</h2>
+                <span class="panel__trajectory">Trajectory conservative · on track</span>
+            </header>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🏥</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">09 Dec 2025</div>
-                    <div class="timeline-title">Dermatology Consult</div>
-                    <div class="timeline-detail">Fortis Hospital consultation for seborrheic dermatitis management during pregnancy.</div>
-                </div>
-            </div>
+            <p class="panel__summary">
+                Initial loss from 77 kg to 74.8 kg (Dec–Feb) is consistent with dietary restrictions and early pregnancy nausea — within normal limits. Recovery to 76 kg by week 20 and 75.7 kg at 25 weeks shows good nutritional adjustment.
+            </p>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">💊</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">17 Dec 2025 (~9 weeks)</div>
-                    <div class="timeline-title">Prescription Update</div>
-                    <div class="timeline-detail"><strong>Additions:</strong> Fexacta (iron), Rotacum (calcium), protein powder, Vitamin D. <strong>Weight:</strong> 77 kg. <strong>Dietary restrictions:</strong> No wheat, no milk.</div>
-                </div>
-            </div>
+            <div class="chart-frame weight-chart">
+                <svg viewBox="0 0 800 300" role="img" aria-label="Weight progression from December 2025 to April 2026">
+                    <!-- Axes -->
+                    <line x1="60" y1="20" x2="60" y2="260" stroke="#E3E0D6" stroke-width="1"/>
+                    <line x1="60" y1="260" x2="760" y2="260" stroke="#E3E0D6" stroke-width="1"/>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🔍</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">21 Dec 2025 (8w1d)</div>
-                    <div class="timeline-title">Ultrasound - Miracles Hospital</div>
-                    <div class="timeline-detail">Single live fetus. Crown-rump length (CRL): 18.1 mm. Development on track.</div>
-                </div>
-            </div>
+                    <!-- Y-axis labels (weight, kg) -->
+                    <text x="50" y="265" font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="end">70</text>
+                    <text x="50" y="195" font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="end">75</text>
+                    <text x="50" y="125" font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="end">80</text>
+                    <text x="50" y="55"  font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="end">85</text>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">💉</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">05 Jan 2026</div>
-                    <div class="timeline-title">Influenza Vaccine</div>
-                    <div class="timeline-detail">Flu vaccine administered as part of routine prenatal care.</div>
-                </div>
-            </div>
+                    <!-- Horizontal hairlines -->
+                    <line x1="60" y1="195" x2="760" y2="195" stroke="#E3E0D6" stroke-width="0.5" stroke-dasharray="2,3"/>
+                    <line x1="60" y1="125" x2="760" y2="125" stroke="#E3E0D6" stroke-width="0.5" stroke-dasharray="2,3"/>
+                    <line x1="60" y1="55"  x2="760" y2="55"  stroke="#E3E0D6" stroke-width="0.5" stroke-dasharray="2,3"/>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🔍</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">13 Jan 2026 (11w6d)</div>
-                    <div class="timeline-title">NT Scan (Level I Ultrasound)</div>
-                    <div class="timeline-detail"><strong>Results:</strong> Nuchal translucency (NT) 1.10 mm (NORMAL), nasal bone present, fetal heart rate 152 bpm, CRL 5.01 cm. No abnormalities detected.</div>
-                </div>
-            </div>
+                    <!-- Connecting line — ink primary, the spine -->
+                    <polyline points="150,90 350,206 500,213 600,150 710,155" fill="none" stroke="#1F1F1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🧬</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">14 Jan 2026 (~12 weeks)</div>
-                    <div class="timeline-title">Double Marker Test Results</div>
-                    <div class="timeline-detail"><strong>Biochemical markers:</strong> Free Beta HCG 37.80 ng/mL, PAPP-A 3.200 mIU/mL (both normal). <strong>Infectious disease screening:</strong> HIV Non-Reactive, HBsAg Non-Reactive, HCV Non-Reactive, RPR Non-Reactive.</div>
-                </div>
-            </div>
+                    <!-- Data points -->
+                    <circle cx="150" cy="90"  r="4" fill="#1F1F1F"/>
+                    <circle cx="350" cy="206" r="4" fill="#1F1F1F"/>
+                    <circle cx="500" cy="213" r="4" fill="#1F1F1F"/>
+                    <circle cx="600" cy="150" r="4" fill="#1F1F1F"/>
+                    <circle cx="710" cy="155" r="4" fill="#2C7A4F"/>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">💊</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">16 Jan 2026</div>
-                    <div class="timeline-title">Prescription Update</div>
-                    <div class="timeline-detail"><strong>Addition:</strong> Kabitote/Therappin (supplement). Quadruple marker test ordered.</div>
-                </div>
-            </div>
+                    <!-- Date labels -->
+                    <text x="150" y="282" font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">Dec 17</text>
+                    <text x="350" y="282" font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">Feb 03</text>
+                    <text x="500" y="282" font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">Feb 27</text>
+                    <text x="600" y="282" font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">Mar 10</text>
+                    <text x="710" y="282" font-size="11" fill="#8A8682" font-family="'SF Mono', Menlo, Consolas, monospace" text-anchor="middle">Apr 13</text>
 
-            <div class="timeline-item">
-                <div class="timeline-marker passed">💊</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">03 Feb 2026 (15w1d)</div>
-                    <div class="timeline-title">Comprehensive Prescription Update</div>
-                    <div class="timeline-detail"><strong>Weight:</strong> 74.8 kg (slight loss from dietary adjustments). All screening tests confirmed negative. Medication regimen optimized.</div>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🧪</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">04 Feb 2026</div>
-                    <div class="timeline-title">Comprehensive Blood Panel - Tata 1mg</div>
-                    <div class="timeline-detail"><strong>Hemoglobin:</strong> 10.9 g/dL (lowest point in pregnancy). <strong>Other markers:</strong> Liver, kidney, and thyroid function all normal.</div>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🏥</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">04 Feb 2026</div>
-                    <div class="timeline-title">Dermatology Follow-up - Fortis</div>
-                    <div class="timeline-detail">Seborrheic dermatitis and xerosis (dry skin) management during pregnancy.</div>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-marker passed">💊</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">27 Feb 2026 (~18 weeks)</div>
-                    <div class="timeline-title">Prescription Update</div>
-                    <div class="timeline-detail"><strong>Hemoglobin:</strong> 10.2 g/dL (from lab). <strong>Weight:</strong> 74 kg. Level II anomaly scan ordered.</div>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🔍</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">02 Mar 2026 (18w6d)</div>
-                    <div class="timeline-title">Level II Anomaly Scan</div>
-                    <div class="timeline-detail">Detailed fetal anatomy assessment. <strong>Results:</strong> All structures normal. Estimated fetal weight: 256g. Note: Fatty habitus in mother limited some evaluations. Follow-up scan recommended in 3rd trimester.</div>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-marker passed">💊</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">10 Mar 2026 (~20 weeks)</div>
-                    <div class="timeline-title">Latest Prescription Update</div>
-                    <div class="timeline-detail"><strong>Additions:</strong> MEGA CV and DIP SHCAL. <strong>Weight:</strong> 76 kg. Fetal scan and diet/exercise plan advised.</div>
-                </div>
-            </div>
-
-            <div class="timeline-item">
-                <div class="timeline-marker passed">🧪</div>
-                <div class="timeline-card">
-                    <div class="timeline-date">11 Apr 2026 (~24 weeks)</div>
-                    <div class="timeline-title">Latest Blood Work & GDM Screening</div>
-                    <div class="timeline-detail"><strong>Hemoglobin:</strong> 11.3 g/dL (recovery excellent!). <strong>GCT (Glucose Challenge Test):</strong> 111 mg/dL — PASSED. <strong>Platelets:</strong> 234 (slight declining trend, monitor). Anemia significantly improved with supplementation.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 3: Prescriptions Tracker -->
-        <h2 class="section-title">Medications Timeline</h2>
-        <div class="rx-container">
-            <table class="rx-table">
-                <thead>
-                    <tr>
-                        <th>Medication</th>
-                        <th>Dec 5</th>
-                        <th>Dec 17</th>
-                        <th>Jan 16</th>
-                        <th>Feb 3</th>
-                        <th>Feb 27</th>
-                        <th>Mar 10</th>
-                        <th>Current</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="drug-name">Ecosprin 150mg</td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">HCQS 300mg</td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-stopped">Stopped</span></td>
-                        <td><span class="status-stopped">Stopped</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">Duphaston 10mg</td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-stopped">Stopped</span></td>
-                        <td><span class="status-stopped">Stopped</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">Folicomax</td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-stopped">Stopped</span></td>
-                        <td><span class="status-stopped">—</span></td>
-                        <td><span class="status-stopped">—</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">Fexacta (Iron)</td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">Rotacum (Calcium)</td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-stopped">—</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">Protein Powder</td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-stopped">—</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">SYP SHCAL-D3</td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-stopped">—</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-active">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">Pentavit</td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-stopped">—</span></td>
-                        <td><span class="status-active">✓</span></td>
-                        <td><span class="status-stopped">—</span></td>
-                        <td><span class="status-stopped">Stopped</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">MEGA CV</td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-active">Active</span></td>
-                    </tr>
-                    <tr>
-                        <td class="drug-name">DIP SHCAL</td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-pending">—</span></td>
-                        <td><span class="status-active">Started</span></td>
-                        <td><span class="status-active">Active</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Section 4: Weight Tracking -->
-        <h2 class="section-title">Weight Progress</h2>
-        <div class="chart-container">
-            <div class="chart-wrapper">
-                <svg viewBox="0 0 800 300" style="margin-bottom: 1rem;">
-                    <!-- Grid lines -->
-                    <line x1="60" y1="20" x2="60" y2="260" stroke="#E8EAED" stroke-width="2"/>
-                    <line x1="60" y1="260" x2="760" y2="260" stroke="#E8EAED" stroke-width="2"/>
-
-                    <!-- Y-axis labels (weight) -->
-                    <text x="40" y="265" font-size="12" fill="#5F6368" text-anchor="end">70 kg</text>
-                    <text x="40" y="195" font-size="12" fill="#5F6368" text-anchor="end">75 kg</text>
-                    <text x="40" y="125" font-size="12" fill="#5F6368" text-anchor="end">80 kg</text>
-                    <text x="40" y="55" font-size="12" fill="#5F6368" text-anchor="end">85 kg</text>
-
-                    <!-- Horizontal grid lines -->
-                    <line x1="55" y1="195" x2="760" y2="195" stroke="#F8F9FA" stroke-width="1"/>
-                    <line x1="55" y1="125" x2="760" y2="125" stroke="#F8F9FA" stroke-width="1"/>
-                    <line x1="55" y1="55" x2="760" y2="55" stroke="#F8F9FA" stroke-width="1"/>
-
-                    <!-- Data points and line -->
-                    <!-- Dec 17: 77 kg -->
-                    <circle cx="150" cy="90" r="5" fill="#BE185D"/>
-                    <text x="150" y="285" font-size="11" fill="#5F6368" text-anchor="middle">Dec 17</text>
-                    <text x="150" y="25" font-size="12" font-weight="600" fill="#BE185D" text-anchor="middle">77 kg</text>
-
-                    <!-- Feb 3: 74.8 kg -->
-                    <circle cx="350" cy="206" r="5" fill="#AB47BC"/>
-                    <text x="350" y="285" font-size="11" fill="#5F6368" text-anchor="middle">Feb 3</text>
-                    <text x="350" y="25" font-size="12" font-weight="600" fill="#AB47BC" text-anchor="middle">74.8 kg</text>
-
-                    <!-- Feb 27: 74 kg -->
-                    <circle cx="500" cy="213" r="5" fill="#AB47BC"/>
-                    <text x="500" y="285" font-size="11" fill="#5F6368" text-anchor="middle">Feb 27</text>
-                    <text x="500" y="25" font-size="12" font-weight="600" fill="#AB47BC" text-anchor="middle">74 kg</text>
-
-                    <!-- Mar 10: 76 kg -->
-                    <circle cx="600" cy="150" r="5" fill="#7C3AED"/>
-                    <text x="600" y="285" font-size="11" fill="#5F6368" text-anchor="middle">Mar 10</text>
-                    <text x="600" y="25" font-size="12" font-weight="600" fill="#7C3AED" text-anchor="middle">76 kg</text>
-
-                    <!-- Connecting line -->
-                    <polyline points="150,90 350,206 500,213 600,150" fill="none" stroke="#EC407A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Value labels above points -->
+                    <text x="150" y="78"  font-size="11" font-family="'SF Mono', Menlo, Consolas, monospace" fill="#1F1F1F" text-anchor="middle">77.0</text>
+                    <text x="350" y="225" font-size="11" font-family="'SF Mono', Menlo, Consolas, monospace" fill="#1F1F1F" text-anchor="middle">74.8</text>
+                    <text x="500" y="232" font-size="11" font-family="'SF Mono', Menlo, Consolas, monospace" fill="#1F1F1F" text-anchor="middle">74.0</text>
+                    <text x="600" y="138" font-size="11" font-family="'SF Mono', Menlo, Consolas, monospace" fill="#1F1F1F" text-anchor="middle">76.0</text>
+                    <text x="710" y="143" font-size="11" font-family="'SF Mono', Menlo, Consolas, monospace" fill="#2C7A4F" text-anchor="middle">75.7</text>
                 </svg>
             </div>
 
-            <div style="background: #FDF2F8; padding: 1.5rem; border-radius: 8px; margin-top: 1.5rem;">
-                <p style="color: #202124; margin-bottom: 0.75rem;"><strong>Expert Analysis:</strong></p>
-                <p style="color: #5F6368; font-size: 0.95rem; line-height: 1.6;">
-                    The initial weight loss from 77 kg to 74.8 kg (Dec-Feb) is consistent with dietary restrictions (no wheat, no milk) and early pregnancy nausea. This loss is considered within normal limits. Recovery to 76 kg by week 20 demonstrates excellent nutritional adjustment and supports healthy fetal development.
-                </p>
-                <p style="color: #5F6368; font-size: 0.95rem; line-height: 1.6; margin-top: 0.75rem;">
-                    <strong>Expected weight gain target:</strong> For a patient with pre-pregnancy BMI in the overweight range, total pregnancy weight gain should ideally be 7-11 kg. Current trajectory is on track for healthy outcome.
-                </p>
+            <div class="callout callout--note" style="margin-top: var(--s-3);">
+                <span class="callout__title">Expected weight gain</span>
+                For a pre-pregnancy BMI in the overweight range, total pregnancy weight gain should ideally be 7–11 kg. Net gain so far is minimal — trajectory is conservative but on track for a healthy outcome; expect modest weight gain (3–5 kg) across the 3rd trimester.
             </div>
+        </section>
+
+        <!-- ===================================================
+             SECTION DIVIDER — REFERENCE
+             =================================================== -->
+        <div class="section-divider" role="separator" aria-label="Reference data">
+            <span class="eyebrow">Pregnancy timeline · reference</span>
         </div>
 
-        <!-- Section 5: Key Risk Factors -->
-        <h2 class="section-title">Risk Factors & Medical Considerations</h2>
+        <!-- ===================================================
+             MEDICAL TIMELINE — preserved class names for dashboard-dynamic.js
+             =================================================== -->
+        <section class="panel" aria-labelledby="timeline-heading">
+            <header class="panel__head">
+                <h2 class="panel__title" id="timeline-heading">Medical timeline</h2>
+                <span class="panel__trajectory">Past visits and tests</span>
+            </header>
 
-        <div class="risk-cards">
-            <!-- APLA Risk Card -->
-            <div class="risk-card high-attention">
-                <div class="risk-header">
-                    <span class="risk-badge badge-high">HIGH ATTENTION</span>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">20 Oct 2025</div>
+                        <div class="timeline-title">Last menstrual period (LMP)</div>
+                        <div class="timeline-detail">Pregnancy dating reference point. All gestational ages calculated from this date.</div>
+                    </div>
                 </div>
-                <div class="risk-title">APLA Positive (Antiphospholipid Antibody Syndrome)</div>
-                <div class="risk-summary">
-                    APLA is an autoimmune condition where the body produces antibodies that increase blood clotting risk. This is managed with Ecosprin (low-dose aspirin) and HCQS (hydroxychloroquine). Both are standard first-line treatment in pregnancy.
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">04 Dec 2025 (6w 3d)</div>
+                        <div class="timeline-title">First ultrasound</div>
+                        <div class="timeline-detail">Single live pregnancy confirmed. Fetal heart rate 111 bpm. The Ultrasound Centre, Gurugram.</div>
+                    </div>
                 </div>
-                <div class="expand-toggle" onclick="toggleDetails(this)">
-                    <span>Learn more</span>
-                    <span>▼</span>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">05 Dec 2025 (6.2 weeks)</div>
+                        <div class="timeline-title">First prescription</div>
+                        <div class="timeline-detail"><strong>Clinic:</strong> Avni Clinic, Dr. Nisha Aggarwal. <strong>Medications:</strong> Ecosprin 150 mg, Folicomax, HCQS 300 mg, Duphaston. <strong>Labs:</strong> Hb 11.3 g/dL. Investigations ordered: Beta HCG, ANA, APLA testing.</div>
+                    </div>
                 </div>
-                <div class="risk-details">
-                    <p><strong>What APLA means for this pregnancy:</strong> Untreated APLA significantly increases the risk of miscarriage (especially 2nd/3rd trimester), preeclampsia, intrauterine growth restriction (IUGR), and placental insufficiency. However, with proper treatment, APLA pregnancies have a 70-80% success rate.</p>
 
-                    <p><strong>Why Ecosprin + HCQS work:</strong> Ecosprin (low-dose aspirin) prevents platelet aggregation and reduces clotting risk. HCQS (hydroxychloroquine) modulates immune response and reduces complement activation, which is central to APLA pathology. This combination is evidence-based and highly effective.</p>
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">09 Dec 2025</div>
+                        <div class="timeline-title">Dermatology consult</div>
+                        <div class="timeline-detail">Fortis Hospital consultation for seborrheic dermatitis management during pregnancy.</div>
+                    </div>
+                </div>
 
-                    <p><strong>Monitoring during pregnancy:</strong> Platelet counts should be checked regularly (trends noted: 234 at 24w — slight declining trend, continue monitoring). Uterine artery Doppler studies and serial fetal growth scans in the 3rd trimester are standard practice. Any signs of preeclampsia (elevated blood pressure, proteinuria, headache, vision changes) require immediate evaluation.</p>
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">17 Dec 2025 (~9 weeks)</div>
+                        <div class="timeline-title">Prescription update</div>
+                        <div class="timeline-detail"><strong>Additions:</strong> Fexacta (iron), Rotacum (calcium), protein powder, Vitamin D. <strong>Weight:</strong> 77 kg. <strong>Dietary restrictions:</strong> No wheat, no milk.</div>
+                    </div>
+                </div>
 
-                    <p><strong>Reassuring findings:</strong> APLA antibody testing was rechecked in January 2026 and came back negative, which is positive (some patients have transient positivity). However, treatment should continue based on clinical history and prior pregnancy losses. Reaching 25 weeks is a significant milestone given this diagnosis.</p>
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">21 Dec 2025 (8w 1d)</div>
+                        <div class="timeline-title">Ultrasound — Miracles Hospital</div>
+                        <div class="timeline-detail">Single live fetus. Crown-rump length (CRL): 18.1 mm. Development on track.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">05 Jan 2026</div>
+                        <div class="timeline-title">Influenza vaccine</div>
+                        <div class="timeline-detail">Flu vaccine administered as part of routine prenatal care.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">13 Jan 2026 (11w 6d)</div>
+                        <div class="timeline-title">NT scan (Level I ultrasound)</div>
+                        <div class="timeline-detail"><strong>Results:</strong> Nuchal translucency 1.10 mm (normal), nasal bone present, fetal heart rate 152 bpm, CRL 5.01 cm. No abnormalities detected.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">14 Jan 2026 (~12 weeks)</div>
+                        <div class="timeline-title">Double marker test results</div>
+                        <div class="timeline-detail"><strong>Biochemical markers:</strong> Free Beta HCG 37.80 ng/mL, PAPP-A 3.200 mIU/mL (both normal). <strong>Infectious disease screening:</strong> HIV non-reactive, HBsAg non-reactive, HCV non-reactive, RPR non-reactive.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">16 Jan 2026</div>
+                        <div class="timeline-title">Prescription update</div>
+                        <div class="timeline-detail"><strong>Addition:</strong> Kabitote / Therappin (supplement). Quadruple marker test ordered.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">03 Feb 2026 (15w 1d)</div>
+                        <div class="timeline-title">Comprehensive prescription update</div>
+                        <div class="timeline-detail"><strong>Weight:</strong> 74.8 kg (slight loss from dietary adjustments). All screening tests confirmed negative. Medication regimen optimised.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">04 Feb 2026</div>
+                        <div class="timeline-title">Comprehensive blood panel — Tata 1mg</div>
+                        <div class="timeline-detail"><strong>Hemoglobin:</strong> 10.9 g/dL (lowest point in pregnancy). <strong>Other markers:</strong> Liver, kidney, and thyroid function all normal.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">04 Feb 2026</div>
+                        <div class="timeline-title">Dermatology follow-up — Fortis</div>
+                        <div class="timeline-detail">Seborrheic dermatitis and xerosis (dry skin) management during pregnancy.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">27 Feb 2026 (~18 weeks)</div>
+                        <div class="timeline-title">Prescription update</div>
+                        <div class="timeline-detail"><strong>Hemoglobin:</strong> 10.2 g/dL (from lab). <strong>Weight:</strong> 74 kg. Level II anomaly scan ordered.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">02 Mar 2026 (18w 6d)</div>
+                        <div class="timeline-title">Level II anomaly scan</div>
+                        <div class="timeline-detail">Detailed fetal anatomy assessment. <strong>Results:</strong> All structures normal. Estimated fetal weight 256 g. Note: Fatty habitus in mother limited some evaluations. Follow-up scan recommended in 3rd trimester.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">10 Mar 2026 (~20 weeks)</div>
+                        <div class="timeline-title">Latest prescription update</div>
+                        <div class="timeline-detail"><strong>Additions:</strong> MEGA CV and DIP SHCAL. <strong>Weight:</strong> 76 kg. Fetal scan and diet/exercise plan advised.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">11 Apr 2026 (~24 weeks)</div>
+                        <div class="timeline-title">Latest blood work and GDM screening</div>
+                        <div class="timeline-detail"><strong>Hemoglobin:</strong> 11.3 g/dL (recovery excellent). <strong>GCT (Glucose Challenge Test):</strong> 111 mg/dL — passed. <strong>Platelets:</strong> 234 (slight declining trend, monitor). Anemia significantly improved with supplementation.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker passed">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">13 Apr 2026 (25w 0d)</div>
+                        <div class="timeline-title">Latest prescription update — Avni Clinic</div>
+                        <div class="timeline-detail"><strong>Dr. Nisha Aggarwal.</strong> <strong>Weight:</strong> 75.7 kg. <strong>Findings:</strong> Fetal echo normal, Hb ~11 g/dL. <strong>Active Rx:</strong> Ecosprin 150 mg (night), HCQS 300 mg <em>restarted</em> (before food), Fexacta (iron, morning), Rotacum (calcium + Vit D, afternoon), Nutriease Protein Powder with DHA (2×/day), SHCAL-D3 60K (weekly × 4), Folicomax (afternoon). <strong>MG Rays cancelled.</strong> <strong>Screening:</strong> HIV / HBsAg / HCV / VDRL negative; double and quadruple markers negative; Tdap 1st dose given 10 Mar 2026; flu vaccine given 15 Jan 2026. <strong>Next follow-up:</strong> 13 May 2026.</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker">·</div>
+                    <div class="timeline-card">
+                        <div class="timeline-date">13 May 2026 (~29 weeks) — upcoming</div>
+                        <div class="timeline-title">Next scheduled follow-up</div>
+                        <div class="timeline-detail">Avni Clinic — Dr. Nisha Aggarwal. Expected discussions: 3rd-trimester monitoring plan, growth scan scheduling, platelet recheck, iron / Hb recheck, continuation of current Rx regimen.</div>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Advanced Maternal Age Card -->
-            <div class="risk-card high-attention">
-                <div class="risk-header">
-                    <span class="risk-badge badge-high">HIGH ATTENTION</span>
-                </div>
-                <div class="risk-title">Advanced Maternal Age (40 years)</div>
-                <div class="risk-summary">
-                    At 40 years, there is higher baseline risk for chromosomal abnormalities, gestational diabetes, preeclampsia, and preterm birth. However, all screening tests so far have been NORMAL.
-                </div>
-                <div class="expand-toggle" onclick="toggleDetails(this)">
-                    <span>Learn more</span>
-                    <span>▼</span>
-                </div>
-                <div class="risk-details">
-                    <p><strong>Why age matters:</strong> Advanced maternal age (35+) is associated with increased risk of Down syndrome (Trisomy 21), Edwards syndrome (Trisomy 18), and Patau syndrome (Trisomy 13). The risk increases significantly after age 40. Additionally, conditions like preeclampsia and gestational diabetes are more common.</p>
+        <!-- ===================================================
+             MEDICATIONS TIMELINE — restyled table, semantics preserved
+             =================================================== -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Medications timeline</h2>
+                <span class="panel__trajectory">Active vs. stopped across visits</span>
+            </header>
 
-                    <p><strong>Reassuring screening results:</strong> NT scan at 11w6d showed a normal nuchal translucency of 1.10 mm (threshold is <3 mm). Nasal bone was present. Double marker test biochemical markers (Free Beta HCG and PAPP-A) were both in normal ranges. These results suggest low risk for chromosomal abnormalities.</p>
+            <p class="panel__summary">
+                Each column is one prescription update; each row is a medication. "Active" continues, "Stopped" was discontinued at that visit, "—" was not on the regimen.
+            </p>
 
-                    <p><strong>Gestational diabetes screening:</strong> GDM screening (Glucose Challenge Test) at 24 weeks showed 111 mg/dL — PASSED. This is excellent news and significantly reduces the risk profile for this pregnancy.</p>
+            <div class="rx-container" style="margin-top: var(--s-3);">
+                <table class="rx-table">
+                    <thead>
+                        <tr>
+                            <th>Medication</th>
+                            <th>Dec 5</th>
+                            <th>Dec 17</th>
+                            <th>Jan 16</th>
+                            <th>Feb 3</th>
+                            <th>Feb 27</th>
+                            <th>Mar 10</th>
+                            <th>Apr 13</th>
+                            <th>Current</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="drug-name">Ecosprin 150 mg</td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">HCQS 300 mg</td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-stopped">Stopped</span></td>
+                            <td><span class="status-active">Restarted</span></td>
+                            <td><span class="status-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">Duphaston 10 mg</td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-stopped">Stopped</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-stopped">Stopped</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">Folicomax</td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-stopped">Stopped</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">Fexacta (Iron)</td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">Rotacum (Calcium)</td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">Protein Powder (Nutriease)</td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">SYP SHCAL-D3</td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-active">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">Pentavit</td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-active">·</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-stopped">Stopped</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">MEGA CV</td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-stopped">Stopped</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">DIP SHCAL</td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-active">Started</span></td>
+                            <td><span class="status-stopped">—</span></td>
+                            <td><span class="status-stopped">Stopped</span></td>
+                        </tr>
+                        <tr>
+                            <td class="drug-name">MG Rays (Mg Glycine)</td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-pending">—</span></td>
+                            <td><span class="status-stopped">Cancelled</span></td>
+                            <td><span class="status-stopped">Not Rx</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-                    <p><strong>Upcoming monitoring:</strong> Continue with planned fetal anatomy scans, growth monitoring in the 3rd trimester, and routine vital sign monitoring. The combination of normal screening + excellent GDM result is very reassuring.</p>
-                </div>
+        <!-- ===================================================
+             RISK FACTORS — collapsed to 1-line summaries with link to blood-work page
+             =================================================== -->
+        <section class="panel" aria-labelledby="risk-heading">
+            <header class="panel__head">
+                <h2 class="panel__title" id="risk-heading">Risk factors and considerations</h2>
+                <span class="panel__trajectory">High-risk pregnancy, well-managed</span>
+            </header>
+
+            <p class="panel__summary">
+                Three high-attention factors and one to monitor. Detailed analysis for hemoglobin, platelets, and kidney markers lives on the blood-work page; this section keeps the high-level picture together.
+            </p>
+
+            <div class="callout callout--alert">
+                <span class="callout__title">APLA positive — Antiphospholipid Antibody Syndrome</span>
+                Autoimmune condition that increases blood clotting risk. Managed with Ecosprin (low-dose aspirin) and HCQS (hydroxychloroquine) — both standard first-line in pregnancy. APLA antibody testing in January 2026 came back negative; treatment continues based on clinical history. Reaching 25 weeks is a significant milestone given this diagnosis.
             </div>
 
-            <!-- Obstetric History Card -->
-            <div class="risk-card high-attention">
-                <div class="risk-header">
-                    <span class="risk-badge badge-high">HIGH ATTENTION</span>
-                </div>
-                <div class="risk-title">Obstetric History: G3P1L0A1</div>
-                <div class="risk-summary">
-                    This is Nikita's 3rd pregnancy. She has had 1 previous delivery but no living children, and 1 abortion. This history, combined with APLA, makes this a high-risk pregnancy.
-                </div>
-                <div class="expand-toggle" onclick="toggleDetails(this)">
-                    <span>Learn more</span>
-                    <span>▼</span>
-                </div>
-                <div class="risk-details">
-                    <p><strong>Understanding G3P1L0A1:</strong> G = Gravida (total pregnancies) = 3. P = Parity (pregnancies after 20 weeks) = 1. L = Living children = 0. A = Abortions (before 20 weeks) = 1. This notation reflects a challenging obstetric history.</p>
-
-                    <p><strong>Connection to APLA:</strong> The most likely explanation for previous pregnancy loss (abortion) and no living children is APLA-related placental insufficiency. APLA causes recurrent pregnancy losses in 30-50% of untreated cases, primarily in the 2nd-3rd trimester.</p>
-
-                    <p><strong>Why aggressive management is justified:</strong> Given APLA + previous pregnancy loss history, this pregnancy is being appropriately managed with:
-                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                        <li>Ecosprin (aspirin) + HCQS from the very beginning</li>
-                        <li>Progesterone support (Duphaston in early pregnancy)</li>
-                        <li>Close fetal monitoring with serial ultrasounds</li>
-                        <li>Nutritional support with iron, calcium, vitamins</li>
-                    </ul>
-                    </p>
-
-                    <p><strong>Positive prognostic factors:</strong> Reaching week 25 is a major milestone. The fact that this pregnancy has progressed normally with normal nuchal translucency, double marker, and GDM screening is very encouraging. With continued monitoring, the prognosis is favorable.</p>
-                </div>
+            <div class="callout callout--alert" style="margin-top: var(--s-3);">
+                <span class="callout__title">Advanced maternal age (40)</span>
+                Higher baseline risk for chromosomal abnormalities, gestational diabetes, preeclampsia, and preterm birth. NT scan, double marker, and GCT all came back normal — risk profile substantially reduced for this pregnancy.
             </div>
 
-            <!-- Anemia Card -->
-            <div class="risk-card monitor">
-                <div class="risk-header">
-                    <span class="risk-badge badge-monitor">MONITOR</span>
-                </div>
-                <div class="risk-title">Iron Deficiency Anemia</div>
-                <div class="risk-summary">
-                    Hemoglobin levels showed a concerning dip to 10.2-10.9 g/dL (Feb), but have recovered to 11.3 g/dL (Apr). Iron supplementation is crucial.
-                </div>
-                <div class="expand-toggle" onclick="toggleDetails(this)">
-                    <span>Learn more</span>
-                    <span>▼</span>
-                </div>
-                <div class="risk-details">
-                    <p><strong>Timeline of hemoglobin changes:</strong>
-                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
-                        <li>05 Dec: 11.3 g/dL (baseline)</li>
-                        <li>04 Feb: 10.9 g/dL (lowest)</li>
-                        <li>27 Feb: 10.2 g/dL (concerning)</li>
-                        <li>11 Apr: 11.3 g/dL (recovery!)</li>
-                    </ul>
-                    </p>
-
-                    <p><strong>Why anemia matters in pregnancy:</strong> During pregnancy, blood volume expands by 40-50%, causing physiologic hemodilution. However, severe anemia (<10 g/dL) increases risk of preterm labor, IUGR, and maternal complications during labor. Additionally, adequate maternal iron stores are critical for fetal development and are difficult to replenish postpartum.</p>
-
-                    <p><strong>What the recovery means:</strong> The return to 11.3 g/dL by 24 weeks demonstrates that iron supplementation (Fexacta) is effective and the patient is compliant. This is excellent news. The dietary restrictions (no wheat, no milk) were likely contributing to the dip, but with supplementation and time, levels are recovering well.</p>
-
-                    <p><strong>Ongoing monitoring:</strong> Continue iron supplementation through pregnancy and postpartum (at least 12 weeks). Recheck hemoglobin every 4-6 weeks in the 3rd trimester to ensure levels remain above 10.5 g/dL. If levels drop again, consider increasing supplementation or investigating for other causes of anemia.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 6: Upcoming Milestones -->
-        <h2 class="section-title">What to Expect: Upcoming Milestones</h2>
-
-        <div class="milestones-grid">
-            <div class="milestone-card">
-                <div class="milestone-week">Weeks 26-28</div>
-                <ul class="milestone-items">
-                    <li>Glucose tolerance test if not completed (✓ Already passed at 24w)</li>
-                    <li>Platelet count recheck (monitor declining trend)</li>
-                    <li>Confirm fetal movements are regular (kick counts)</li>
-                    <li>Begin monitoring for preeclampsia symptoms</li>
-                </ul>
+            <div class="callout callout--alert" style="margin-top: var(--s-3);">
+                <span class="callout__title">Obstetric history G3P1L0A1</span>
+                Third pregnancy, one previous delivery, no living children, one abortion. Combined with APLA, this is a high-risk pregnancy — managed with Ecosprin + HCQS from the beginning, progesterone support in early pregnancy, and close fetal monitoring.
             </div>
 
-            <div class="milestone-card">
-                <div class="milestone-week">Weeks 28-32</div>
-                <ul class="milestone-items">
-                    <li>Growth scan (especially important given APLA)</li>
-                    <li>Uterine artery Doppler study</li>
-                    <li>Iron and hemoglobin recheck</li>
-                    <li>Blood pressure monitoring (preeclampsia screening)</li>
-                    <li>Anemia review and optimization</li>
-                </ul>
+            <div class="callout callout--watch" style="margin-top: var(--s-3);">
+                <span class="callout__title">Iron deficiency anemia</span>
+                Hb dipped to 10.2–10.9 g/dL in February; recovered to 11.3 g/dL by April. Iron supplementation (Fexacta) is working. Continue through 3rd trimester. <a href="index.html" style="color: inherit; text-decoration: underline;">See the anemia panel on the blood-work page</a> for the full trend, MCV/MCH detail, and the recovery analysis.
             </div>
+        </section>
 
-            <div class="milestone-card">
-                <div class="milestone-week">Weeks 32-36</div>
-                <ul class="milestone-items">
-                    <li>Weekly or biweekly monitoring with obstetrics</li>
-                    <li>Growth ultrasound and amniotic fluid assessment</li>
-                    <li>Non-stress test (NST) if indicated</li>
-                    <li>Continue Ecosprin throughout this period</li>
-                    <li>Prepare for delivery planning discussion</li>
-                </ul>
-            </div>
+    </main>
 
-            <div class="milestone-card">
-                <div class="milestone-week">Weeks 36-37</div>
-                <ul class="milestone-items">
-                    <li><strong>Discuss delivery timing:</strong> APLA pregnancies are typically delivered by 37-39 weeks</li>
-                    <li><strong>Stop Ecosprin at 36 weeks:</strong> To reduce bleeding risk during delivery</li>
-                    <li>Finalize delivery plan (vaginal vs. C-section)</li>
-                    <li>Confirm platelet count is adequate for labor</li>
-                    <li>Discuss management of APLA during labor</li>
-                </ul>
-            </div>
-
-            <div class="milestone-card">
-                <div class="milestone-week">Weeks 37-40</div>
-                <ul class="milestone-items">
-                    <li>Likely delivery window (37-39 weeks for APLA)</li>
-                    <li>Twice-weekly monitoring if continuing past 37w</li>
-                    <li>Continuous fetal heart rate monitoring during labor</li>
-                    <li>Thromboprophylaxis during labor/postpartum</li>
-                    <li>Alert postpartum team to APLA diagnosis</li>
-                </ul>
-            </div>
-
-            <div class="milestone-card">
-                <div class="milestone-week">Postpartum</div>
-                <ul class="milestone-items">
-                    <li>APLA management continues postpartum</li>
-                    <li>Hemoglobin check at 6 weeks</li>
-                    <li>Continue iron supplementation</li>
-                    <li>Monitor for postpartum preeclampsia</li>
-                    <li>Plan anticoagulation strategy with hematology</li>
-                </ul>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Footer -->
-    <footer>
-        <p>NBB Health Dashboard — Last updated: 13 Apr 2026 | Not a substitute for professional medical advice</p>
+    <!-- ===================================================
+         FOOTER
+         =================================================== -->
+    <footer class="footer container" role="contentinfo">
+        <p>
+            NBB Health Dashboard ·
+            <span data-dyn-last-updated="long">Last updated: 25 April 2026</span>
+        </p>
+        <p>Reference only. Confirm any change with your doctor. · Built for Nikita and HB.</p>
     </footer>
 
-    <script>
-        function toggleDetails(element) {
-            const details = element.parentElement.querySelector('.risk-details');
-            details.classList.toggle('expanded');
-
-            const arrow = element.querySelector('span:last-child');
-            if (details.classList.contains('expanded')) {
-                arrow.textContent = '▲';
-            } else {
-                arrow.textContent = '▼';
-            }
-        }
-    </script>
+    <!-- Dynamic GA / trimester / footer engine — DO NOT MOVE -->
+    <script src="data/dashboard-dynamic.js"></script>
 </body>
 </html>

@@ -3,1154 +3,855 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBB Health Dashboard - Blood Work</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta name="description" content="Personal health dashboard for Nikita Bhagat — blood work history, trend lines, and reference ranges.">
+    <title>NBB Health Dashboard — Blood work</title>
+
+    <!-- Shared design system (single source of truth — see assets/css/pulse-dashboard.css) -->
+    <link rel="stylesheet" href="assets/css/pulse-dashboard.css">
+
+    <!-- Chart.js (kept; restyle of palette ships in Phase 7 of redesign) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #FDF2F8;
-            color: #202124;
-            line-height: 1.6;
-        }
-
-        /* Navigation Bar */
-        nav {
-            background-color: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        nav .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 64px;
-        }
-
-        nav .title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #BE185D;
-            text-decoration: none;
-            letter-spacing: -0.5px;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 24px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #202124;
-            font-size: 14px;
-            font-weight: 500;
-            padding: 8px 12px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        nav a:hover {
-            background-color: #F8F9FA;
-            color: #BE185D;
-        }
-
-        nav a.active {
-            color: #BE185D;
-            background-color: #FCE7F3;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 32px 24px;
-        }
-
-        /* Patient Header Card */
-        .patient-header {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-
-        .patient-header h2 {
-            font-size: 24px;
-            margin-bottom: 16px;
-            color: #202124;
-        }
-
-        .patient-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 20px;
-        }
-
-        .patient-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .patient-item label {
-            font-size: 12px;
-            color: #5F6368;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .patient-item value {
-            font-size: 16px;
-            font-weight: 500;
-            color: #202124;
-        }
-
-        .badges-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .badge.condition {
-            background-color: #F3E8FF;
-            color: #6D28D9;
-        }
-
-        /* Chart Container */
-        .chart-section {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 32px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-
-        .chart-section h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: #202124;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .priority-badge {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 4px;
-            background-color: #FEE2E2;
-            color: #991B1B;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 300px;
-            margin-bottom: 24px;
-        }
-
-        /* Expert Diagnosis Card */
-        .expert-card {
-            border-top: 2px solid #E8EAED;
-            padding-top: 20px;
-        }
-
-        .expert-card .summary {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .expert-card .status-badge {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .status-badge.normal {
-            background-color: #ECFDF5;
-            color: #065F46;
-        }
-
-        .status-badge.monitor {
-            background-color: #FFFBEB;
-            color: #92400E;
-        }
-
-        .status-badge.warning {
-            background-color: #FEF3C7;
-            color: #92400E;
-        }
-
-        .status-badge.concerning {
-            background-color: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .expert-card .summary-text {
-            flex: 1;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #202124;
-        }
-
-        .accordion-trigger {
-            background: #F8F9FA;
-            border: 1px solid #E8EAED;
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            font-weight: 600;
-            color: #202124;
-            transition: all 0.2s ease;
-            margin-top: 12px;
-        }
-
-        .accordion-trigger:hover {
-            background-color: #E8EAED;
-        }
-
-        .accordion-trigger.open {
-            background-color: #FCE7F3;
-            color: #BE185D;
-        }
-
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .accordion-content.open {
-            max-height: 1000px;
-            transition: max-height 0.4s ease;
-        }
-
-        .accordion-content-inner {
-            padding: 16px;
-            background-color: #FAFAFA;
-            border-radius: 8px;
-            margin-top: 8px;
-            font-size: 13px;
-            line-height: 1.7;
-            color: #202124;
-        }
-
-        .accordion-content-inner h4 {
-            font-size: 13px;
-            font-weight: 700;
-            margin-top: 12px;
-            margin-bottom: 8px;
-            color: #202124;
-        }
-
-        .accordion-content-inner ul {
-            margin-left: 16px;
-            margin-top: 8px;
-        }
-
-        .accordion-content-inner li {
-            margin-bottom: 6px;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 24px;
-            color: #5F6368;
-            font-size: 12px;
-            border-top: 1px solid #E8EAED;
-            margin-top: 48px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            nav ul {
-                gap: 16px;
-            }
-
-            nav a {
-                font-size: 12px;
-            }
-
-            .container {
-                padding: 16px;
-            }
-
-            .patient-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .chart-wrapper {
-                height: 250px;
-            }
-
-            .expert-card .summary {
-                flex-direction: column;
-            }
-
-            .status-badge {
-                width: 100%;
-                text-align: center;
-            }
-        }
-
-        /* Hover Effects */
-        .chart-section {
-            transition: box-shadow 0.2s ease;
-        }
-
-        .chart-section:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-    </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="container" style="max-width: 100%; padding: 0 24px;">
-            <a href="index.html" class="title">NBB Health Dashboard</a>
-            <ul>
-                <li><a href="index.html" class="active">Blood Work</a></li>
-                <li><a href="pregnancy.html">Pregnancy</a></li>
-                <li><a href="ultrasound.html">Ultrasounds</a></li>
-                <li><a href="nutrition.html">Diet & Nutrition</a></li>
+
+    <!-- =====================================================
+         HEADER BAND — see assets/partials/header-pattern.html
+         ===================================================== -->
+    <header class="header-band">
+        <nav class="container nav" aria-label="Primary">
+            <a href="index.html" class="nav__brand">NBB Health Dashboard</a>
+            <ul class="nav__list">
+                <li><a href="index.html"      class="nav__link is-active" aria-current="page">Blood work</a></li>
+                <li><a href="pregnancy.html"  class="nav__link">Pregnancy</a></li>
+                <li><a href="ultrasound.html" class="nav__link">Ultrasounds</a></li>
+                <li><a href="nutrition.html"  class="nav__link">Nutrition</a></li>
             </ul>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Patient Header -->
-        <div class="patient-header">
-            <h2>Patient Profile</h2>
-            <div class="patient-grid">
-                <div class="patient-item">
-                    <label>Name</label>
-                    <value>Nikita Bhagat</value>
-                </div>
-                <div class="patient-item">
-                    <label>Age</label>
-                    <value>40 years</value>
-                </div>
-                <div class="patient-item">
-                    <label>Blood Group</label>
-                    <value>A+</value>
-                </div>
-                <div class="patient-item">
-                    <label>Obstetric History</label>
-                    <value>G3P1L0A1</value>
-                </div>
-                <div class="patient-item">
-                    <label>Last Menstrual Period</label>
-                    <value>20 Oct 2025</value>
-                </div>
-                <div class="patient-item">
-                    <label>Estimated Due Date</label>
-                    <value>27 Jul 2026</value>
-                </div>
-                <div class="patient-item">
-                    <label>Current Gestational Age</label>
-                    <value>~25 weeks</value>
-                </div>
-            </div>
-            <div class="patient-item" style="margin-top: 12px;">
-                <label style="margin-bottom: 8px;">Medical Conditions</label>
-                <div class="badges-container">
-                    <span class="badge condition">APLA Positive</span>
-                    <span class="badge condition">Advanced Maternal Age</span>
-                    <span class="badge condition">Prior Pregnancy Loss</span>
+        </nav>
+        <div class="patient-strip" aria-label="Patient identity">
+            <div class="container patient-strip__inner">
+                <span class="patient-strip__name">Nikita Bhagat</span>
+                <span class="patient-strip__sep">·</span>
+                <span>40</span>
+                <span class="patient-strip__sep">·</span>
+                <span>A+</span>
+                <span class="patient-strip__sep">·</span>
+                <span>G3P1L0A1</span>
+                <span class="patient-strip__sep">·</span>
+                <span data-dyn="ga-wd">26w 0d</span>
+                <span class="patient-strip__sep">·</span>
+                <span>EDD <span data-dyn="edd-short">27 Jul 2026</span></span>
+                <div class="patient-strip__chips">
+                    <span class="patient-strip__chip">APLA positive</span>
+                    <span class="patient-strip__chip">Iron deficiency anemia</span>
+                    <span class="patient-strip__chip">Advanced maternal age</span>
                 </div>
             </div>
         </div>
+    </header>
 
-        <!-- 1. ANEMIA PANEL -->
-        <div class="chart-section">
-            <h3>
-                <span>🩸 Anemia Panel</span>
-                <span class="priority-badge">Most Important</span>
-            </h3>
-            <div class="chart-wrapper">
-                <canvas id="anemiaChart"></canvas>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge monitor">Iron Deficiency Anemia — Recovering</span>
-                    <div class="summary-text">
-                        Hemoglobin dipped to 10.9 g/dL at 15 weeks but recovered to 11.3 by 24 weeks — the iron supplements (Fexacta) are working. Still below the 12 g/dL reference range, which is expected in pregnancy due to hemodilution. MCV improved dramatically from 74.6 to 83.3 fL, suggesting the microcytic pattern is resolving.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>Iron Deficiency Pattern</h4>
-                        <p>The combination of low hemoglobin (10.9), low MCV (74.6), and low MCH (24.8) at 15 weeks clearly shows iron deficiency anemia with a microcytic pattern. The elevated RDW-CV at 14.8% indicates significant variation in red blood cell size — many small, immature cells co-existing with normal-sized cells.</p>
+    <main class="container">
 
-                        <h4>Why This Happens in Pregnancy</h4>
-                        <ul>
-                            <li><strong>Increased blood volume:</strong> Plasma volume expands 45-50% to support placental circulation and meet fetal needs. Red cells increase only 20-30%, causing dilution (physiological anemia).</li>
-                            <li><strong>Fetal iron demand:</strong> The fetus requires ~300-400 mg of iron total, with 90% transferred in the 3rd trimester.</li>
-                            <li><strong>Reduced absorption:</strong> Increased GI demands combined with dietary gaps often result in frank iron deficiency by week 12-16.</li>
-                            <li><strong>APLA connection:</strong> Autoimmune conditions can impair iron metabolism; careful monitoring is essential.</li>
-                        </ul>
+        <!-- ===================================================
+             PAGE TITLE
+             =================================================== -->
+        <section class="page-title">
+            <p class="eyebrow page-title__eyebrow">Blood work</p>
+            <h1 class="display-1">Blood work</h1>
+            <p class="page-title__sub">Latest results, trend lines, and reference ranges for the current pregnancy.</p>
+        </section>
 
-                        <h4>The Recovery Trend (EXCELLENT NEWS)</h4>
-                        <p>Hemoglobin recovery from 10.9 to 11.3 g/dL in 9 weeks shows that Fexacta iron supplementation is effective. More importantly, MCV jumped from 74.6 to 83.3 fL — nearly 9 points. This dramatic shift means:</p>
-                        <ul>
-                            <li>New reticulocytes (young RBCs) are being produced with adequate iron.</li>
-                            <li>The microcytic RBCs from the iron-deficient period are being replaced.</li>
-                            <li>RDW-CV climbing to 16.3% is <strong>expected and normal</strong> during recovery—it peaks as old microcytic cells coexist with new normocytic cells, then gradually normalizes.</li>
-                        </ul>
+        <!-- ===================================================
+             NOW BAND — what to attend to this fortnight.
+             Hand-curated. KPI tiles below it read live data.
+             =================================================== -->
+        <section class="now-card" aria-labelledby="now-heading">
+            <p class="eyebrow now-card__eyebrow" id="now-heading">Now</p>
+            <p class="now-card__lede">
+                <span data-dyn="ga-wd">26w 0d</span>
+                <span class="sep">·</span>
+                <span data-dyn="trimester-name">Second Trimester</span>
+                <span class="sep">·</span>
+                <span data-dyn="weeks-remaining">~14 weeks remaining</span>
+            </p>
 
-                        <h4>3rd Trimester Watch Points</h4>
-                        <ul>
-                            <li>Continue Fexacta with vitamin C for absorption.</li>
-                            <li>Recheck hemoglobin at 28 and 32 weeks—most anemia worsens in 3rd trimester as fetal demand peaks.</li>
-                            <li>If hemoglobin drops below 10 g/dL after week 30, discuss IV iron or transfusion risk with your OB.</li>
-                            <li>Monitor for fatigue, shortness of breath, or tachycardia—signs of progressive anemia.</li>
-                            <li>Given APLA status, ensure rheumatology is aware of iron supplementation (some chelation agents interact with APLA drugs).</li>
-                        </ul>
-
-                        <h4>RDW-CV Rising — Why This Is OK</h4>
-                        <p>RDW measures the width distribution of RBC sizes. During iron recovery, RDW rises temporarily because:</p>
-                        <ul>
-                            <li>New, properly-sized RBCs (from improved iron) enter circulation.</li>
-                            <li>Old, small microcytic RBCs still circulate (lifespan ~120 days).</li>
-                            <li>The population is mixed—high variation, hence high RDW.</li>
-                            <li>As the microcytic population clears, RDW normalizes. This is a GOOD sign.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. RED CELL INDICES -->
-        <div class="chart-section">
-            <h3>Red Cell Indices (MCV, MCH, RDW-CV)</h3>
-            <div class="chart-wrapper">
-                <canvas id="redCellChart"></canvas>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge normal">Excellent Recovery Trend</span>
-                    <div class="summary-text">
-                        MCV recovered dramatically from 73.9 fL (microcytic) to 83.3 fL (approaching normal), showing that iron supplementation is effectively producing normal-sized red cells. MCH followed the same pattern. RDW climbing is expected during recovery as new normocytic cells integrate with aging microcytic cells.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>What the Indices Tell Us</h4>
-                        <ul>
-                            <li><strong>MCV (Mean Corpuscular Volume):</strong> Measures average RBC size. Progression from 73.9 → 83.3 fL means cells are getting bigger and more normal.</li>
-                            <li><strong>MCH (Mean Corpuscular Hemoglobin):</strong> Measures average hemoglobin per cell. Rose from 24.4 → 27.5 pg, approaching the 27-32 reference range.</li>
-                            <li><strong>RDW-CV (Red Cell Distribution Width):</strong> Measures variation in RBC size. Rose from 14.3% → 16.3%, which is expected during recovery but still acceptable.</li>
-                        </ul>
-
-                        <h4>Iron Supplementation Effectiveness</h4>
-                        <p>The steady upward trend in MCV and MCH across all four tests proves that iron is being absorbed and incorporated into new hemoglobin. Without Fexacta, we would expect:</p>
-                        <ul>
-                            <li>MCV to stabilize or worsen at 74-76 fL.</li>
-                            <li>MCH to remain stuck at 24-25 pg.</li>
-                            <li>Progressive anemia (hemoglobin falling further).</li>
-                        </ul>
-                        <p>Instead, we see recovery. This is a success story.</p>
-
-                        <h4>RDW Trajectory — Not a Concern</h4>
-                        <p>RDW-CV climbed from 14.3% → 16.3%, but this is temporary:</p>
-                        <ul>
-                            <li>It peaks during the transition from microcytic to normocytic RBC populations.</li>
-                            <li>As time passes, old microcytic cells die (120-day lifespan) and are replaced entirely by new iron-replete cells.</li>
-                            <li>RDW will normalize in 4-8 weeks as the population homogenizes.</li>
-                            <li>Watch it at 28 weeks—expect it to be stable or declining by then.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. WHITE BLOOD CELLS & IMMUNITY -->
-        <div class="chart-section">
-            <h3>White Blood Cells & Immunity</h3>
-            <div class="chart-wrapper">
-                <canvas id="wbcChart"></canvas>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge normal">Physiological — No Concern</span>
-                    <div class="summary-text">
-                        Mild leukocytosis (WBC 11.2-11.4) is normal in pregnancy. The neutrophilia (ANC 7-8.5) reflects the immune system's protective response. Lymphocyte percentage dropping is also physiological—the immune system shifts to protect the fetus while maintaining appropriate immune response.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>Leukocytosis in Pregnancy is NORMAL</h4>
-                        <p>WBC typically ranges 4,000-10,000 in non-pregnant women, but in pregnancy:</p>
-                        <ul>
-                            <li>WBC rises to 10,500-15,000 by 3rd trimester—a 50% increase.</li>
-                            <li>Your current WBC of 11.2-11.4 is early-to-mid pregnancy range (expected for 24 weeks).</li>
-                            <li>The increase is driven by:</li>
-                        </ul>
-                        <ul style="margin-left: 32px;">
-                            <li>Stress hormones (cortisol, catecholamines) driving myelopoiesis.</li>
-                            <li>Placental production of G-CSF (granulocyte colony-stimulating factor).</li>
-                            <li>Immune adaptation to tolerate fetal antigens while maintaining protective immunity.</li>
-                        </ul>
-
-                        <h4>Neutrophilia is Expected</h4>
-                        <p>Absolute neutrophil count (ANC) at 7-8.5 is within the normal pregnancy range:</p>
-                        <ul>
-                            <li>Non-pregnant range: 2-7 × 10³/µL</li>
-                            <li>Pregnancy range: 5-14 × 10³/µL</li>
-                            <li>Your values (7-8.5) are perfectly normal.</li>
-                            <li>Neutrophilia increases as pregnancy advances, peaking around labor.</li>
-                        </ul>
-
-                        <h4>Lymphocyte Shift — Immunological Adaptation</h4>
-                        <p>As WBC rises, the percentage of lymphocytes typically falls (though absolute lymphocyte count may stay steady). This is part of the shift from Th1 (cell-mediated) to Th2 (humoral) immunity—a protective mechanism to prevent maternal immune rejection of the fetus.</p>
-
-                        <h4>APLA Consideration</h4>
-                        <p>Given your APLA-positive status, maintaining this modest, stable leukocytosis is actually favorable. Patients with APLA need immune competence (to clear placental microthrombi) but also immune tolerance (to prevent anti-fetal responses). Your WBC profile suggests a healthy balance.</p>
-
-                        <h4>No Infection Sign</h4>
-                        <p>No leftward shift (absence of immature band neutrophils), normal lymphocyte percentage, and stable values across all four tests rule out infection or acute immune activation. Continue current monitoring.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. PLATELET TREND -->
-        <div class="chart-section">
-            <h3>
-                <span>⚠️ Platelet Trend</span>
-                <span class="priority-badge">Monitor Closely</span>
-            </h3>
-            <div class="chart-wrapper">
-                <canvas id="plateletChart"></canvas>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge warning">Declining Trend — Needs Monitoring</span>
-                    <div class="summary-text">
-                        Platelets dropped from 367 to 234 — a 36% decline over 4 months. While still in the normal range (150-410), this trajectory requires careful monitoring. Gestational thrombocytopenia is the most common cause, but APLA status and aspirin use warrant close follow-up.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>The Decline Pattern</h4>
-                        <ul>
-                            <li><strong>28-Aug-2025 (Pre-pregnancy):</strong> 367 K/µL (normal baseline)</li>
-                            <li><strong>20-Dec-2025 (9 weeks):</strong> 362 K/µL (stable)</li>
-                            <li><strong>04-Feb-2026 (15 weeks):</strong> 297 K/µL (dropped 65 points)</li>
-                            <li><strong>11-Apr-2026 (24 weeks):</strong> 234 K/µL (dropped 63 points)</li>
-                        </ul>
-                        <p>The rate of decline is consistent (30-65 points every 5-6 weeks). At this rate, you could reach 150 K/µL (mild thrombocytopenia threshold) around 32-34 weeks.</p>
-
-                        <h4>Most Likely: Gestational Thrombocytopenia</h4>
-                        <p><strong>Gestational thrombocytopenia (GT)</strong> affects 8-10% of pregnant women. Characteristics:</p>
-                        <ul>
-                            <li>Mild decline in platelets (usually 100-150 K/µL, rarely below 100).</li>
-                            <li>Begins in 2nd-3rd trimester, worsens gradually, resolves postpartum.</li>
-                            <li>Caused by hemodilution, increased platelet consumption, and mild immune activation.</li>
-                            <li>Not associated with fetal complications or bleeding risk.</li>
-                            <li>No treatment needed unless platelets fall below 50 K/µL (very rare in GT).</li>
-                        </ul>
-
-                        <h4>BUT: APLA Status Changes Risk Calculus</h4>
-                        <p>In APLA-positive patients, thrombocytopenia can be:</p>
-                        <ul>
-                            <li><strong>APLA-related thrombocytopenia:</strong> 25-40% of APLA patients develop mild-to-moderate thrombocytopenia. Mechanism: anti-phospholipid antibodies binding platelet membranes, triggering clearance.</li>
-                            <li><strong>Ecosprin (aspirin) contribution:</strong> Daily aspirin increases platelet turnover and can contribute to mild decline (though rarely to clinically significant thrombocytopenia).</li>
-                            <li><strong>Combined effect:</strong> GT + APLA + aspirin = three factors working together to lower platelets.</li>
-                        </ul>
-
-                        <h4>CRITICAL Monitoring Plan</h4>
-                        <ul>
-                            <li><strong>Recheck at 28 weeks (in ~2 weeks):</strong> Essential. If platelets stabilize, GT is likely. If they continue falling at the same rate, consider APLA-related thrombocytopenia.</li>
-                            <li><strong>Recheck at 32 weeks:</strong> Again assess trend. Inform your OB before labor (important for epidural eligibility and transfusion readiness).</li>
-                            <li><strong>Recheck at 34 weeks:</strong> Last check before term. Establish baseline for labor and delivery.</li>
-                            <li><strong>If platelets drop below 150:</strong> Consult your hematologist (given APLA). They may recommend:</li>
-                        </ul>
-                        <ul style="margin-left: 32px;">
-                            <li>Platelet function studies (PFA-100 or aggregometry) to rule out qualitative defect.</li>
-                            <li>Anti-platelet antibody testing (APLA-specific).</li>
-                            <li>Peripheral blood smear to rule out pseudothrombocytopenia.</li>
-                        </ul>
-
-                        <h4>If Platelets Fall Below 100</h4>
-                        <ul>
-                            <li>Moderate thrombocytopenia—increased intervention risk (more likely to recommend C-section if labor is high-risk).</li>
-                            <li>Epidural contraindicated without closer monitoring.</li>
-                            <li>Discuss IVIG or corticosteroids with hematology (rarely needed but possible).</li>
-                        </ul>
-
-                        <h4>If Platelets Fall Below 50</h4>
-                        <ul>
-                            <li>Severe thrombocytopenia—significant bleeding risk.</li>
-                            <li>Require platelet transfusions before delivery.</li>
-                            <li>Likely C-section delivery to minimize trauma.</li>
-                            <li>Close coordination with hematology and OB critical.</li>
-                        </ul>
-
-                        <h4>Silver Lining</h4>
-                        <p>Your current platelet count (234) is still solidly normal. Most women with GT or APLA-related thrombocytopenia never drop below 100 K/µL. The key is vigilant monitoring—you have time to plan and prepare if needed. Don't panic, but do take the trend seriously.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. GLUCOSE & DIABETES SCREENING -->
-        <div class="chart-section">
-            <h3>Glucose & Diabetes Screening</h3>
-            <div class="chart-wrapper">
-                <canvas id="glucoseChart"></canvas>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge normal">Excellent Glucose Control</span>
-                    <div class="summary-text">
-                        Fasting glucose consistently 80-90 mg/dL. 50g Glucose Challenge Test at 24 weeks = 111 mg/dL (well below the 140 mg/dL threshold). HbA1c 5.1% (Feb 2026)—perfect. GDM is effectively ruled out.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>Fasting Glucose Trend</h4>
-                        <ul>
-                            <li><strong>Jul-2024 (pre-pregnancy):</strong> 90 mg/dL (normal)</li>
-                            <li><strong>Aug-2025 (baseline pregnancy):</strong> 87 mg/dL (excellent)</li>
-                            <li><strong>Feb-2026 (15 weeks):</strong> 80 mg/dL (excellent)</li>
-                            <li><strong>Apr-2026 (24 weeks):</strong> 86 mg/dL (excellent)</li>
-                        </ul>
-                        <p>All values are solidly in the 70-99 mg/dL normal fasting range. No upward trend, no signs of emerging glucose intolerance.</p>
-
-                        <h4>50g Glucose Challenge Test (GCT)</h4>
-                        <p><strong>What it is:</strong> A screening test given at 24-28 weeks. Drink 50g glucose, check blood glucose 1 hour later.</p>
-                        <ul>
-                            <li><strong>Your result:</strong> 111 mg/dL</li>
-                            <li><strong>Normal threshold:</strong> <140 mg/dL (some labs use 135)</li>
-                            <li><strong>Interpretation:</strong> <strong>PASS</strong> — significantly below threshold, well into normal range.</li>
-                        </ul>
-                        <p>This single test alone effectively rules out GDM. No need for 3-hour glucose tolerance test.</p>
-
-                        <h4>HbA1c: The Gold Standard</h4>
-                        <p><strong>HbA1c 5.1%</strong> (measured Feb 2026, ~15 weeks):</p>
-                        <ul>
-                            <li><strong>Normal range:</strong> <5.7%</li>
-                            <li><strong>Your value:</strong> 5.1% — optimal, well below pre-diabetes threshold.</li>
-                            <li><strong>What it means:</strong> Your average blood glucose over the past 3 months has been 80-95 mg/dL. Zero signs of impaired glucose metabolism.</li>
-                        </ul>
-
-                        <h4>GDM Risk Factors — Your Profile</h4>
-                        <p>You have several GDM risk factors:</p>
-                        <ul>
-                            <li><strong>Advanced maternal age (40):</strong> 2x increased GDM risk.</li>
-                            <li><strong>Multiparity (G3):</strong> Slight increase in GDM risk after 2+ pregnancies.</li>
-                            <li><strong>APLA status:</strong> Mild indirect risk (APLA patients sometimes have metabolic syndrome).</li>
-                        </ul>
-                        <p>Despite these risk factors, your glucose control is excellent. This suggests good insulin sensitivity and metabolic health.</p>
-
-                        <h4>3rd Trimester Screening</h4>
-                        <ul>
-                            <li>Repeat fasting glucose at 28-32 weeks (standard of care).</li>
-                            <li>Also reasonable to repeat at 34-36 weeks, given advanced maternal age.</li>
-                            <li>If any fasting glucose rises above 100 mg/dL or any postprandial rises above 140, discuss with your OB about a 3-hour GTT.</li>
-                            <li>Given your current excellent values, the risk of late-pregnancy GDM is <2%.</li>
-                        </ul>
-
-                        <h4>Lifestyle & Nutrition</h4>
-                        <p>Continue current diet and activity (modified for pregnancy, of course). Your excellent glucose control suggests:</p>
-                        <ul>
-                            <li>Good dietary adherence (likely consistent carb intake).</li>
-                            <li>Healthy weight pre-pregnancy or appropriate gestational weight gain.</li>
-                            <li>Good physical activity (walking, prenatal yoga, swimming).</li>
-                        </ul>
-                        <p>These factors are the strongest GDM preventers.</p>
-
-                        <h4>Bottom Line</h4>
-                        <p>GDM is effectively ruled out. You can confidently enter the 3rd trimester without glucose concerns. Routine screening remains important, but your excellent metabolic profile is reassuring for baby's health and your gestational outcomes.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 6. LIPID PROFILE -->
-        <div class="chart-section">
-            <h3>Lipid Profile (Feb 2026)</h3>
-            <div class="chart-wrapper">
-                <canvas id="lipidChart"></canvas>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge normal">Favorable Profile</span>
-                    <div class="summary-text">
-                        Total cholesterol 195, triglycerides 115, HDL 60, LDL 112, Non-HDL 135. HDL is protective. LDL mildly elevated but normal for pregnancy. Lipids naturally increase 25-50% during pregnancy to support fetal development. No intervention needed.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>Lipid Panel Breakdown</h4>
-                        <ul>
-                            <li><strong>Total Cholesterol 195:</strong> Desirable in non-pregnant; borderline in pregnancy. Expected to rise to 220-250 by 3rd trimester.</li>
-                            <li><strong>Triglycerides 115:</strong> Normal (ideal <100 in non-pregnant, but <150 is acceptable in pregnancy).</li>
-                            <li><strong>HDL 60:</strong> EXCELLENT. This is protective cholesterol; >50 is protective in women.</li>
-                            <li><strong>LDL 112:</strong> Mildly elevated in non-pregnant terms (should be <100), but normal for pregnancy.</li>
-                            <li><strong>Non-HDL 135:</strong> Borderline (calculated as Total - HDL). Represents non-protective cholesterol.</li>
-                        </ul>
-
-                        <h4>Why Lipids Rise in Pregnancy</h4>
-                        <ul>
-                            <li><strong>Estrogen surge:</strong> Increases hepatic lipid production and reduces LDL clearance.</li>
-                            <li><strong>Fetal demands:</strong> Cholesterol is essential for:</li>
-                        </ul>
-                        <ul style="margin-left: 32px;">
-                            <li>Fetal cell membrane synthesis (trillions of cells forming).</li>
-                            <li>Placental steroid hormone production (progesterone, estriol).</li>
-                            <li>Myelin formation (fetal CNS development).</li>
-                        </ul>
-                        <ul>
-                            <li><strong>Expected rise:</strong> Total cholesterol typically increases 25-50% (175 → 240 mg/dL) by 3rd trimester. TG can rise 50-300%.</li>
-                        </ul>
-
-                        <h4>Your Profile at 15 Weeks</h4>
-                        <p>At 15 weeks, your lipids are still relatively moderate. Expected trajectory:</p>
-                        <ul>
-                            <li><strong>Now (15 weeks):</strong> Total 195, TG 115</li>
-                            <li><strong>Expected at 28 weeks:</strong> Total 230-240, TG 150-180</li>
-                            <li><strong>Expected at 36 weeks:</strong> Total 250-260, TG 200-300</li>
-                        </ul>
-                        <p>This is normal and physiological. No treatment needed unless Total >300 or TG >400.</p>
-
-                        <h4>HDL: Your Protective Factor</h4>
-                        <p>HDL of 60 is excellent for women and is strongly protective against cardiovascular disease. The high HDL offsets the mild LDL elevation, making your overall cardiovascular risk low.</p>
-
-                        <h4>APLA Consideration</h4>
-                        <p>APLA patients sometimes have mild dyslipidemia or oxidized LDL (more atherogenic). Your current HDL/LDL ratio is favorable. Continue:</p>
-                        <ul>
-                            <li>Omega-3 rich foods (fish, flaxseed, walnuts) — benefits HDL and TG.</li>
-                            <li>Fiber-rich diet — supports lipid metabolism.</li>
-                            <li>Regular activity (walking, prenatal yoga) — maintains HDL.</li>
-                        </ul>
-
-                        <h4>3rd Trimester Recheck</h4>
-                        <ul>
-                            <li>Lipid recheck at 32-34 weeks is reasonable given advanced maternal age and APLA status.</li>
-                            <li>If Total >300 or TG >400, discuss with your OB (rare in pregnancy, but possible).</li>
-                            <li>Some OBs recommend statin use if lipids are severely elevated in pregnancy with high risk factors; yours are not.</li>
-                        </ul>
-
-                        <h4>Postpartum Plan</h4>
-                        <ul>
-                            <li>Lipids will normalize 3-4 weeks after delivery.</li>
-                            <li>Recheck lipids at 3 months postpartum to establish true non-pregnant baseline.</li>
-                            <li>If non-pregnant Total >240 or LDL >130, discuss cardiovascular risk reduction with your primary care physician.</li>
-                        </ul>
-
-                        <h4>Bottom Line</h4>
-                        <p>Your lipid profile is favorable for pregnancy. The mild lipid elevation is expected and physiological. No treatment needed. Focus on nutrition, activity, and routine monitoring.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 7. THYROID FUNCTION -->
-        <div class="chart-section">
-            <h3>Thyroid Function (Feb 2026)</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
-                <div style="background: #ECFDF5; padding: 16px; border-radius: 8px;">
-                    <div style="font-size: 12px; color: #065F46; font-weight: 600; margin-bottom: 8px;">TSH</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #065F46;">1.559 mIU/L</div>
-                    <div style="font-size: 12px; color: #047857; margin-top: 4px;">Ref (2nd trim): 0.2–3.0</div>
-                </div>
-                <div style="background: #ECFDF5; padding: 16px; border-radius: 8px;">
-                    <div style="font-size: 12px; color: #065F46; font-weight: 600; margin-bottom: 8px;">Free T4</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #065F46;">12.3 pmol/L</div>
-                    <div style="font-size: 12px; color: #047857; margin-top: 4px;">Ref (2nd trim): 10–14</div>
-                </div>
-                <div style="background: #ECFDF5; padding: 16px; border-radius: 8px;">
-                    <div style="font-size: 12px; color: #065F46; font-weight: 600; margin-bottom: 8px;">Free T3</div>
-                    <div style="font-size: 24px; font-weight: 700; color: #065F46;">1.49 pmol/L</div>
-                    <div style="font-size: 12px; color: #047857; margin-top: 4px;">Ref (2nd trim): 1.0–2.4</div>
-                </div>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge normal">Perfect Thyroid Function</span>
-                    <div class="summary-text">
-                        TSH 1.559 is well within the 2nd trimester reference range (0.2-3.0). Free T4 12.3 is mid-range. Free T3 1.49 is stable. Thyroid function is optimal for fetal brain development.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>Why Thyroid Matters in Pregnancy</h4>
-                        <p>Adequate thyroid hormone (T4 and T3) is critical for:</p>
-                        <ul>
-                            <li><strong>Fetal brain development:</strong> Thyroid hormone is essential for CNS myelination and neurogenesis. Even mild maternal hypothyroidism can impair fetal IQ (up to 10-point deficit if untreated).</li>
-                            <li><strong>Placental function:</strong> T4/T3 support placental vascularization and nutrient transport.</li>
-                            <li><strong>Metabolic support:</strong> Increased maternal metabolism supports pregnancy's higher energy demands.</li>
-                        </ul>
-
-                        <h4>Your Thyroid Values</h4>
-                        <ul>
-                            <li><strong>TSH 1.559:</strong> Perfect. Well within 2nd trimester range (0.2-3.0). Not suppressed (no Graves or overtreatment), not elevated (no hypothyroidism).</li>
-                            <li><strong>Free T4 12.3:</strong> Mid-range within the 10-14 pmol/L reference. Adequate for fetal development.</li>
-                            <li><strong>Free T3 1.49:</strong> Normal for pregnancy. T3 is the active form; this value shows good peripheral conversion of T4 → T3.</li>
-                        </ul>
-
-                        <h4>Trimester-Specific Reference Ranges</h4>
-                        <p>Pregnancy reference ranges differ from non-pregnant ranges:</p>
-                        <ul>
-                            <li><strong>1st trimester:</strong> TSH 0.1–2.5 mIU/L (lower than baseline)</li>
-                            <li><strong>2nd trimester:</strong> TSH 0.2–3.0 mIU/L (still lower)</li>
-                            <li><strong>3rd trimester:</strong> TSH 0.2–3.5 mIU/L (gradual rise allowed)</li>
-                        </ul>
-                        <p>Some sources recommend tighter targets (TSH <2.5 ideally) for women on replacement therapy. You're not on replacement, so your TSH of 1.559 is excellent.</p>
-
-                        <h4>APLA & Thyroid</h4>
-                        <p>APLA patients have increased risk of:</p>
-                        <ul>
-                            <li>Autoimmune thyroiditis (Hashimoto's) — 15-20% of APLA patients.</li>
-                            <li>Thyroid antibodies (anti-TPO, anti-thyroglobulin).</li>
-                        </ul>
-                        <p>Your TSH/Free T4/Free T3 profile shows no signs of thyroid autoimmunity or dysfunction. This is reassuring.</p>
-
-                        <h4>Monitoring Plan</h4>
-                        <ul>
-                            <li><strong>Recheck at 28 weeks:</strong> Standard of care for all pregnant women to ensure thyroid function remains stable.</li>
-                            <li><strong>Recheck at 34-36 weeks:</strong> Optional but reasonable given APLA status (to catch late-pregnancy thyroid drift).</li>
-                            <li><strong>If TSH rises >3.5 at any point:</strong> Discuss levothyroxine with your OB (even if TSH is technically "normal" post-pregnancy ranges), as fetal needs are higher.</li>
-                            <li><strong>Postpartum:</strong> Recheck TSH at 6-8 weeks postpartum. Risk of postpartum thyroiditis is ~5-10%, and APLA patients may be at higher risk.</li>
-                        </ul>
-
-                        <h4>Nutrition Support</h4>
-                        <ul>
-                            <li><strong>Iodine:</strong> Aim for 220 µg/day (pregnant women need more than non-pregnant). Iodized salt, dairy, eggs, seaweed.</li>
-                            <li><strong>Selenium:</strong> 60 µg/day. Supports T4 → T3 conversion. Found in Brazil nuts, fish, eggs.</li>
-                            <li><strong>Zinc:</strong> Supports thyroid hormone receptors. Found in oysters, beef, pumpkin seeds.</li>
-                        </ul>
-
-                        <h4>Bottom Line</h4>
-                        <p>Your thyroid is working perfectly. No replacement therapy needed. Continue routine monitoring and ensure adequate iodine/selenium intake. Fetal brain development is well-supported.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 8. LIVER FUNCTION -->
-        <div class="chart-section">
-            <h3>Liver Function (Apr 2026)</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
-                <div style="background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #065F46; font-weight: 600; margin-bottom: 8px;">SGOT (AST)</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #065F46;">14</div>
-                    <div style="font-size: 11px; color: #047857;">Ref: 10–40 U/L</div>
-                </div>
-                <div style="background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #065F46; font-weight: 600; margin-bottom: 8px;">SGPT (ALT)</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #065F46;">12</div>
-                    <div style="font-size: 11px; color: #047857;">Ref: 7–56 U/L</div>
-                </div>
-                <div style="background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #065F46; font-weight: 600; margin-bottom: 8px;">ALP</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #065F46;">98</div>
-                    <div style="font-size: 11px; color: #047857;">Ref: 30–120 U/L</div>
-                </div>
-                <div style="background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #065F46; font-weight: 600; margin-bottom: 8px;">GGT</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #065F46;">31</div>
-                    <div style="font-size: 11px; color: #047857;">Ref: 9–48 U/L</div>
-                </div>
-                <div style="background: #ECFDF5; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #065F46; font-weight: 600; margin-bottom: 8px;">Bilirubin (Total)</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #065F46;">0.29</div>
-                    <div style="font-size: 11px; color: #047857;">Ref: 0.1–1.2 mg/dL</div>
-                </div>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge normal">All Enzymes Normal</span>
-                    <div class="summary-text">
-                        All liver enzymes (SGOT, SGPT, ALP, GGT) are well within normal range. Bilirubin is normal. The HCQS (hydroxychloroquine) use is safe—no liver toxicity detected.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>Liver Enzyme Overview</h4>
-                        <ul>
-                            <li><strong>SGOT (AST):</strong> Aspartate aminotransferase. Found in liver, heart, muscle. Reflects hepatocyte turnover. Your 14 is low-normal (good sign).</li>
-                            <li><strong>SGPT (ALT):</strong> Alanine aminotransferase. More liver-specific than AST. Your 12 is low-normal (excellent).</li>
-                            <li><strong>ALP:</strong> Alkaline phosphatase. Rises in pregnancy due to placental contribution (placental ALP isoenzyme). Your 98 is well within range and lower than typical 3rd trimester values (often 120-150).</li>
-                            <li><strong>GGT:</strong> Gamma-glutamyl transferase. Marker of bile duct function. Your 31 is normal and stable.</li>
-                            <li><strong>Bilirubin:</strong> Breakdown product of hemoglobin. Your 0.29 is normal (not elevated, not low).</li>
-                        </ul>
-
-                        <h4>Why These Values Are Reassuring</h4>
-                        <p>Given that you're taking hydroxychloroquine (HCQS) for APLA management, the normal liver enzymes are critical reassurance:</p>
-                        <ul>
-                            <li>HCQS can rarely cause hepatotoxicity (usually at high cumulative doses or in susceptible patients).</li>
-                            <li>Your enzymes show ZERO evidence of liver injury from HCQS.</li>
-                            <li>Safe to continue HCQS through pregnancy.</li>
-                        </ul>
-
-                        <h4>ALP in Pregnancy</h4>
-                        <p>ALP naturally rises in pregnancy (98 U/L is expected at 24 weeks). By 3rd trimester:</p>
-                        <ul>
-                            <li>Total ALP rises 40-50% above baseline due to placental production.</li>
-                            <li>Placental ALP isoenzyme contributes 60-80% of total ALP in late pregnancy.</li>
-                            <li>This is normal and not a sign of liver disease.</li>
-                            <li>Expected 3rd trimester ALP: 110-160 U/L (your current 98 is already trending upward, which is normal).</li>
-                        </ul>
-
-                        <h4>HCQS Monitoring</h4>
-                        <p>For patients on HCQS, standard monitoring includes:</p>
-                        <ul>
-                            <li>Liver function tests (AST, ALT) every 6-12 months (you're being checked more frequently in pregnancy, which is good).</li>
-                            <li>Ophthalmology screening (HCQS can rarely affect the retina) — important to arrange postpartum if not done recently.</li>
-                        </ul>
-                        <p>Your current liver profile is perfect for continuing HCQS.</p>
-
-                        <h4>Cholestasis Screening</h4>
-                        <p>Intrahepatic cholestasis of pregnancy (ICP) is rare but important in late pregnancy:</p>
-                        <ul>
-                            <li>Presents with itching (pruritus) and elevated bile acids.</li>
-                            <li>Associated with increased stillbirth risk if untreated.</li>
-                            <li>Your normal GGT, bilirubin, and ALT argue against ICP at 24 weeks.</li>
-                            <li>If you develop itching (especially palms/soles) in 3rd trimester, inform your OB immediately.</li>
-                        </ul>
-
-                        <h4>3rd Trimester Monitoring</h4>
-                        <ul>
-                            <li>Liver function recheck at 32-34 weeks is reasonable given HCQS use (standard of care).</li>
-                            <li>If any enzyme rises >2x upper limit of normal, discuss with rheumatology and OB before continuing HCQS.</li>
-                            <li>Post-delivery: recheck liver enzymes at 6 weeks postpartum to confirm return to baseline.</li>
-                        </ul>
-
-                        <h4>Bottom Line</h4>
-                        <p>Liver function is excellent. Safe to continue HCQS. ALP will rise further in 3rd trimester, but that's normal and expected. No liver-related concerns.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 9. KIDNEY FUNCTION -->
-        <div class="chart-section">
-            <h3>Kidney Function (Apr 2026)</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px;">
-                <div style="background: #E8F5E9; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #1B5E20; font-weight: 600; margin-bottom: 8px;">BUN</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #1B5E20;">5</div>
-                    <div style="font-size: 11px; color: #2E7D32;">Ref: 7–20 mg/dL</div>
-                </div>
-                <div style="background: #E8F5E9; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #1B5E20; font-weight: 600; margin-bottom: 8px;">Creatinine</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #1B5E20;">0.39</div>
-                    <div style="font-size: 11px; color: #2E7D32;">Ref: 0.6–1.2 mg/dL</div>
-                </div>
-                <div style="background: #E8F5E9; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #1B5E20; font-weight: 600; margin-bottom: 8px;">Uric Acid</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #1B5E20;">2.7</div>
-                    <div style="font-size: 11px; color: #2E7D32;">Ref: 2.6–6.0 mg/dL</div>
-                </div>
-                <div style="background: #E8F5E9; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #1B5E20; font-weight: 600; margin-bottom: 8px;">Sodium</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #1B5E20;">139</div>
-                    <div style="font-size: 11px; color: #2E7D32;">Ref: 135–145 mEq/L</div>
-                </div>
-                <div style="background: #E8F5E9; padding: 16px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 12px; color: #1B5E20; font-weight: 600; margin-bottom: 8px;">Potassium</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #1B5E20;">4.06</div>
-                    <div style="font-size: 11px; color: #2E7D32;">Ref: 3.5–5.0 mEq/L</div>
-                </div>
-            </div>
-            <div class="expert-card">
-                <div class="summary">
-                    <span class="status-badge normal">Excellent Kidney Function</span>
-                    <div class="summary-text">
-                        BUN and creatinine are LOW (normal for pregnancy). Uric acid is stable at 2.7. Electrolytes (sodium, potassium) are perfect. Kidney function supports healthy pregnancy.
-                    </div>
-                </div>
-                <div class="accordion-trigger" onclick="toggleAccordion(this)">
-                    <span>Detailed Analysis</span>
-                    <span style="font-size: 16px;">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="accordion-content-inner">
-                        <h4>The Kidney in Pregnancy</h4>
-                        <p>Pregnancy profoundly changes kidney function:</p>
-                        <ul>
-                            <li><strong>GFR increases 40-50%:</strong> The kidney hyperfiltrates to clear fetal waste and maternal metabolic byproducts.</li>
-                            <li><strong>Renal blood flow increases:</strong> RPF (renal plasma flow) rises 75%, supporting the higher filtration.</li>
-                            <li><strong>Creatinine and BUN fall:</strong> Due to increased clearance, these values drop relative to non-pregnant ranges.</li>
-                        </ul>
-
-                        <h4>Your Kidney Markers</h4>
-                        <ul>
-                            <li><strong>BUN 5:</strong> LOW. Normal non-pregnant range is 7-20 mg/dL. In pregnancy, 5-10 mg/dL is expected and shows excellent kidney perfusion.</li>
-                            <li><strong>Creatinine 0.39:</strong> LOW. Normal non-pregnant range is 0.6-1.2 mg/dL. In pregnancy, <0.4 mg/dL is normal and shows high GFR. This is excellent.</li>
-                            <li><strong>BUN/Creatinine ratio:</strong> 5/0.39 = 12.8 (normal ratio is 10-20). Your ratio is perfect.</li>
-                        </ul>
-
-                        <h4>IMPORTANT: Uric Acid Trajectory</h4>
-                        <p>Uric acid is LOW at 2.7 mg/dL (normal 2.6-6.0). This is expected in early-mid pregnancy:</p>
-                        <ul>
-                            <li>Early pregnancy: Uric acid falls due to increased GFR (same hyperfiltering effect as BUN/creatinine).</li>
-                            <li>Mid-late pregnancy: Uric acid RISES again (3rd trimester), reaching 3-5 mg/dL by term (higher than baseline due to metabolic changes).</li>
-                        </ul>
-                        <p><strong>Why this matters for YOU:</strong> Rising uric acid in late pregnancy is a RED FLAG for preeclampsia, especially in APLA patients. Monitor closely at 28, 32, 34, and 36 weeks.</p>
-
-                        <h4>Uric Acid & Preeclampsia Risk</h4>
-                        <p>Given APLA-positive status, preeclampsia risk is 10-15x higher than the general population. Uric acid is a marker:</p>
-                        <ul>
-                            <li><strong>Uric acid >3.5 mg/dL in 2nd trimester or >4.0 in 3rd trimester:</strong> Suggests early preeclampsia or impending preeclampsia.</li>
-                            <li><strong>Your current 2.7:</strong> Low and protective. No preeclampsia signal at 24 weeks.</li>
-                            <li><strong>Key action:</strong> Recheck uric acid at every prenatal visit starting at 28 weeks. If it rises >1 mg/dL from baseline (e.g., 3.7 or higher), alert your OB.</li>
-                            <li><strong>Combined with:</strong> Blood pressure, proteinuria (urine protein), and symptoms (headache, RUQ pain, visual changes) — uric acid helps paint the preeclampsia picture.</li>
-                        </ul>
-
-                        <h4>Electrolytes: Sodium & Potassium</h4>
-                        <ul>
-                            <li><strong>Sodium 139:</strong> Mid-range. Normal in pregnancy is 135-145 mEq/L. Perfect balance maintained despite volume expansion.</li>
-                            <li><strong>Potassium 4.06:</strong> Normal. Important for cardiac rhythm and muscle function. Mothers and fetuses both need adequate K+.</li>
-                            <li><strong>Interpretation:</strong> Electrolyte balance is excellent. No signs of volume depletion or electrolyte disturbance.</li>
-                        </ul>
-
-                        <h4>Kidney Function Summary</h4>
-                        <p>Your low BUN and creatinine reflect a healthy, hyperfiltrating kidney—exactly what you want in pregnancy. This indicates:</p>
-                        <ul>
-                            <li>Good renal blood flow.</li>
-                            <li>Adequate hydration.</li>
-                            <li>Healthy placental perfusion.</li>
-                        </ul>
-
-                        <h4>3rd Trimester Monitoring — CRITICAL FOR APLA</h4>
-                        <ul>
-                            <li><strong>Renal function at 28 weeks:</strong> BUN, creatinine, uric acid, electrolytes.</li>
-                            <li><strong>Renal function at 32 weeks:</strong> Same panel. Watch for uric acid rise.</li>
-                            <li><strong>Renal function at 34-36 weeks:</strong> Same panel. If uric acid rises >4.0 mg/dL, arrange more frequent monitoring (weekly).</li>
-                            <li><strong>Urinalysis with each visit:</strong> Screen for proteinuria (another preeclampsia marker).</li>
-                        </ul>
-
-                        <h4>Hydration & Kidney Health</h4>
-                        <ul>
-                            <li>Drink 8-10 glasses of water daily (pregnant women need more water).</li>
-                            <li>Avoid excess caffeine and salt (though moderate salt is fine).</li>
-                            <li>Monitor urine color—pale yellow is ideal, dark yellow suggests dehydration.</li>
-                        </ul>
-
-                        <h4>Bottom Line</h4>
-                        <p>Kidney function is excellent at 24 weeks. The low BUN/creatinine and normal electrolytes show healthy adaptation to pregnancy. Uric acid 2.7 is reassuring for no current preeclampsia. However, APLA status means vigilant 3rd trimester uric acid monitoring is essential.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Summary Note -->
-        <div style="background: #FCE7F3; border: 1px solid #FBBBDB; border-radius: 12px; padding: 20px; margin-top: 32px; margin-bottom: 32px;">
-            <h3 style="color: #BE185D; margin-bottom: 12px; font-size: 16px;">Key Takeaways</h3>
-            <ul style="font-size: 14px; line-height: 1.8; color: #202124;">
-                <li><strong>Anemia is recovering:</strong> Iron supplementation (Fexacta) is working. Hemoglobin and MCV both improving.</li>
-                <li><strong>No GDM:</strong> Glucose control is excellent. GDM ruled out by GCT and HbA1c.</li>
-                <li><strong>Platelet count declining:</strong> Monitor closely at 28, 32, 34 weeks. Gestational thrombocytopenia most likely, but APLA-related thrombocytopenia must be ruled out. Stay vigilant.</li>
-                <li><strong>Thyroid, liver, kidney all normal:</strong> Safe to continue all current medications (Ecosprin, Fexacta, HCQS).</li>
-                <li><strong>Uric acid monitoring critical:</strong> Given APLA status and preeclampsia risk, watch uric acid closely in 3rd trimester. Rising uric acid is a preeclampsia warning sign.</li>
-                <li><strong>Overall:</strong> At 24 weeks, health status is good. Vigilant monitoring in 3rd trimester is essential given APLA-positive status.</li>
+            <p class="eyebrow now-card__watch-label">Watch this fortnight</p>
+            <ul class="now-card__watch-list">
+                <li class="is-watch"><strong>Platelets 234 K/µL</strong> — declining since baseline. Recheck at 28 weeks.</li>
+                <li class="is-good"><strong>Hb 11.3 g/dL</strong> — recovering. Continue Fexacta with vitamin C.</li>
+                <li class="is-good"><strong>Uric acid 2.7 mg/dL</strong> — baseline established for preeclampsia surveillance.</li>
             </ul>
-        </div>
-    </div>
+        </section>
 
-    <!-- Footer -->
-    <footer>
-        <p>NBB Health Dashboard — Last updated: 13 Apr 2026 | Data source: Tata 1mg Labs | Not a substitute for professional medical advice</p>
+        <!-- ===================================================
+             KPI ROW — three live-data tiles for the watch metrics
+             =================================================== -->
+        <section class="grid-3" aria-label="Key metrics at a glance">
+            <article class="kpi-tile">
+                <p class="eyebrow kpi-tile__eyebrow">Hemoglobin</p>
+                <p class="kpi-tile__value">11.3<span class="unit">g/dL</span></p>
+                <p class="kpi-tile__sub is-good">Recovering since 04 Feb (+0.4)</p>
+                <div class="range-bar" role="img" aria-label="Hemoglobin 11.3 g/dL — below the 12 g/dL non-pregnant reference, expected in pregnancy">
+                    <div class="range-bar__label"><span>Reference 12–15</span><span class="range-bar__value">11.3</span></div>
+                    <div class="range-bar__track">
+                        <div class="range-bar__band" style="left:40%;right:0;"></div>
+                        <div class="range-bar__dot is-watch" style="left:26%;"></div>
+                    </div>
+                    <div class="range-bar__scale"><span>10</span><span>12</span><span>15</span></div>
+                </div>
+            </article>
+
+            <article class="kpi-tile">
+                <p class="eyebrow kpi-tile__eyebrow">Platelets</p>
+                <p class="kpi-tile__value">234<span class="unit">K/µL</span></p>
+                <p class="kpi-tile__sub is-watch">Declining (−36% since Aug)</p>
+                <div class="range-bar" role="img" aria-label="Platelets 234 K/µL — within the 150 to 410 reference range but trending downward">
+                    <div class="range-bar__label"><span>Reference 150–410</span><span class="range-bar__value">234</span></div>
+                    <div class="range-bar__track">
+                        <div class="range-bar__band" style="left:14%;right:14%;"></div>
+                        <div class="range-bar__dot is-watch" style="left:32%;"></div>
+                    </div>
+                    <div class="range-bar__scale"><span>100</span><span>250</span><span>450</span></div>
+                </div>
+            </article>
+
+            <article class="kpi-tile">
+                <p class="eyebrow kpi-tile__eyebrow">Uric acid</p>
+                <p class="kpi-tile__value">2.7<span class="unit">mg/dL</span></p>
+                <p class="kpi-tile__sub is-good">Baseline established</p>
+                <div class="range-bar" role="img" aria-label="Uric acid 2.7 mg/dL — within the 2.6 to 6.0 reference range, low end is normal in mid-pregnancy">
+                    <div class="range-bar__label"><span>Reference 2.6–6.0</span><span class="range-bar__value">2.7</span></div>
+                    <div class="range-bar__track">
+                        <div class="range-bar__band" style="left:20%;right:20%;"></div>
+                        <div class="range-bar__dot is-good" style="left:21%;"></div>
+                    </div>
+                    <div class="range-bar__scale"><span>1</span><span>4</span><span>7</span></div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ===================================================
+             CRITICAL-WATCH PANELS (in order of trimester-3 importance)
+                1. Platelet trend
+                2. Anemia panel
+                3. Kidney function (uric acid)
+             =================================================== -->
+
+        <!-- ----- 1. PLATELET TREND ------------------------------------ -->
+        <section class="panel panel--watch">
+            <header class="panel__head">
+                <h2 class="panel__title">Platelet trend</h2>
+                <span class="panel__trajectory">Declining since baseline</span>
+            </header>
+
+            <p class="panel__summary">
+                Platelets dropped from 367 to 234 — a 36% decline over 4 months. While still in the normal range (150–410), this trajectory requires careful monitoring. Gestational thrombocytopenia is the most common cause, but APLA status and aspirin use warrant close follow-up.
+            </p>
+
+            <div class="chart-frame">
+                <div class="chart-frame__canvas"><canvas id="plateletChart"></canvas></div>
+            </div>
+
+            <div class="callout callout--watch">
+                <span class="callout__title">Recheck at 28 weeks</span>
+                If decline continues at the same slope, request hematology consult before week 32. Inform OB before labor for epidural eligibility.
+            </div>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>The Decline Pattern</h4>
+                    <ul>
+                        <li><strong>28-Aug-2025 (Pre-pregnancy):</strong> 367 K/µL (normal baseline)</li>
+                        <li><strong>20-Dec-2025 (9 weeks):</strong> 362 K/µL (stable)</li>
+                        <li><strong>04-Feb-2026 (15 weeks):</strong> 297 K/µL (dropped 65 points)</li>
+                        <li><strong>11-Apr-2026 (24 weeks):</strong> 234 K/µL (dropped 63 points)</li>
+                    </ul>
+                    <p>The rate of decline is consistent (30-65 points every 5-6 weeks). At this rate, you could reach 150 K/µL (mild thrombocytopenia threshold) around 32-34 weeks.</p>
+
+                    <h4>Most Likely: Gestational Thrombocytopenia</h4>
+                    <p><strong>Gestational thrombocytopenia (GT)</strong> affects 8-10% of pregnant women. Characteristics:</p>
+                    <ul>
+                        <li>Mild decline in platelets (usually 100-150 K/µL, rarely below 100).</li>
+                        <li>Begins in 2nd-3rd trimester, worsens gradually, resolves postpartum.</li>
+                        <li>Caused by hemodilution, increased platelet consumption, and mild immune activation.</li>
+                        <li>Not associated with fetal complications or bleeding risk.</li>
+                        <li>No treatment needed unless platelets fall below 50 K/µL (very rare in GT).</li>
+                    </ul>
+
+                    <h4>BUT: APLA Status Changes Risk Calculus</h4>
+                    <p>In APLA-positive patients, thrombocytopenia can be:</p>
+                    <ul>
+                        <li><strong>APLA-related thrombocytopenia:</strong> 25-40% of APLA patients develop mild-to-moderate thrombocytopenia. Mechanism: anti-phospholipid antibodies binding platelet membranes, triggering clearance.</li>
+                        <li><strong>Ecosprin (aspirin) contribution:</strong> Daily aspirin increases platelet turnover and can contribute to mild decline (though rarely to clinically significant thrombocytopenia).</li>
+                        <li><strong>Combined effect:</strong> GT + APLA + aspirin = three factors working together to lower platelets.</li>
+                    </ul>
+
+                    <h4>Critical Monitoring Plan</h4>
+                    <ul>
+                        <li><strong>Recheck at 28 weeks (in ~2 weeks):</strong> Essential. If platelets stabilize, GT is likely. If they continue falling at the same rate, consider APLA-related thrombocytopenia.</li>
+                        <li><strong>Recheck at 32 weeks:</strong> Again assess trend. Inform your OB before labor (important for epidural eligibility and transfusion readiness).</li>
+                        <li><strong>Recheck at 34 weeks:</strong> Last check before term. Establish baseline for labor and delivery.</li>
+                        <li><strong>If platelets drop below 150:</strong> Consult your hematologist (given APLA). They may recommend platelet function studies (PFA-100 or aggregometry), anti-platelet antibody testing, or peripheral blood smear.</li>
+                    </ul>
+
+                    <h4>If Platelets Fall Below 100</h4>
+                    <ul>
+                        <li>Moderate thrombocytopenia—increased intervention risk (more likely to recommend C-section if labor is high-risk).</li>
+                        <li>Epidural contraindicated without closer monitoring.</li>
+                        <li>Discuss IVIG or corticosteroids with hematology (rarely needed but possible).</li>
+                    </ul>
+
+                    <h4>If Platelets Fall Below 50</h4>
+                    <ul>
+                        <li>Severe thrombocytopenia—significant bleeding risk.</li>
+                        <li>Require platelet transfusions before delivery.</li>
+                        <li>Likely C-section delivery to minimize trauma.</li>
+                        <li>Close coordination with hematology and OB critical.</li>
+                    </ul>
+
+                    <h4>Silver Lining</h4>
+                    <p>Your current platelet count (234) is still solidly normal. Most women with GT or APLA-related thrombocytopenia never drop below 100 K/µL. The key is vigilant monitoring—you have time to plan and prepare if needed. Don't panic, but do take the trend seriously.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- 2. ANEMIA PANEL -------------------------------------- -->
+        <section class="panel panel--good">
+            <header class="panel__head">
+                <h2 class="panel__title">Anemia panel</h2>
+                <span class="panel__trajectory">Recovering since 04 Feb</span>
+            </header>
+
+            <p class="panel__summary">
+                Hemoglobin dipped to 10.9 g/dL at 15 weeks but recovered to 11.3 by 24 weeks — the iron supplements (Fexacta) are working. Still below the 12 g/dL reference range, which is expected in pregnancy due to hemodilution. MCV improved dramatically from 74.6 to 83.3 fL, suggesting the microcytic pattern is resolving.
+            </p>
+
+            <div class="chart-frame">
+                <div class="chart-frame__canvas"><canvas id="anemiaChart"></canvas></div>
+            </div>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>Iron Deficiency Pattern</h4>
+                    <p>The combination of low hemoglobin (10.9), low MCV (74.6), and low MCH (24.8) at 15 weeks clearly shows iron deficiency anemia with a microcytic pattern. The elevated RDW-CV at 14.8% indicates significant variation in red blood cell size — many small, immature cells co-existing with normal-sized cells.</p>
+
+                    <h4>Why This Happens in Pregnancy</h4>
+                    <ul>
+                        <li><strong>Increased blood volume:</strong> Plasma volume expands 45-50% to support placental circulation and meet fetal needs. Red cells increase only 20-30%, causing dilution (physiological anemia).</li>
+                        <li><strong>Fetal iron demand:</strong> The fetus requires ~300-400 mg of iron total, with 90% transferred in the 3rd trimester.</li>
+                        <li><strong>Reduced absorption:</strong> Increased GI demands combined with dietary gaps often result in frank iron deficiency by week 12-16.</li>
+                        <li><strong>APLA connection:</strong> Autoimmune conditions can impair iron metabolism; careful monitoring is essential.</li>
+                    </ul>
+
+                    <h4>The Recovery Trend</h4>
+                    <p>Hemoglobin recovery from 10.9 to 11.3 g/dL in 9 weeks shows that Fexacta iron supplementation is effective. More importantly, MCV jumped from 74.6 to 83.3 fL — nearly 9 points. This dramatic shift means:</p>
+                    <ul>
+                        <li>New reticulocytes (young RBCs) are being produced with adequate iron.</li>
+                        <li>The microcytic RBCs from the iron-deficient period are being replaced.</li>
+                        <li>RDW-CV climbing to 16.3% is <strong>expected and normal</strong> during recovery — it peaks as old microcytic cells coexist with new normocytic cells, then gradually normalizes.</li>
+                    </ul>
+
+                    <h4>3rd Trimester Watch Points</h4>
+                    <ul>
+                        <li>Continue Fexacta with vitamin C for absorption.</li>
+                        <li>Recheck hemoglobin at 28 and 32 weeks — most anemia worsens in 3rd trimester as fetal demand peaks.</li>
+                        <li>If hemoglobin drops below 10 g/dL after week 30, discuss IV iron or transfusion risk with your OB.</li>
+                        <li>Monitor for fatigue, shortness of breath, or tachycardia — signs of progressive anemia.</li>
+                        <li>Given APLA status, ensure rheumatology is aware of iron supplementation (some chelation agents interact with APLA drugs).</li>
+                    </ul>
+
+                    <h4>RDW-CV Rising — Why This Is OK</h4>
+                    <p>RDW measures the width distribution of RBC sizes. During iron recovery, RDW rises temporarily because:</p>
+                    <ul>
+                        <li>New, properly-sized RBCs (from improved iron) enter circulation.</li>
+                        <li>Old, small microcytic RBCs still circulate (lifespan ~120 days).</li>
+                        <li>The population is mixed — high variation, hence high RDW.</li>
+                        <li>As the microcytic population clears, RDW normalizes. This is a good sign.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- 3. KIDNEY FUNCTION (uric acid focus) ----------------- -->
+        <section class="panel panel--good">
+            <header class="panel__head">
+                <h2 class="panel__title">Kidney function</h2>
+                <span class="panel__trajectory">All markers normal</span>
+            </header>
+
+            <p class="panel__summary">
+                BUN and creatinine are low (normal for pregnancy — kidneys are hyperfiltering). Uric acid is stable at 2.7. Electrolytes (sodium, potassium) are perfect. Kidney function supports a healthy pregnancy.
+            </p>
+
+            <div class="grid-auto" style="margin-top: var(--s-3);">
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">BUN</p>
+                    <p class="kpi-tile__value">5<span class="unit">mg/dL</span></p>
+                    <p class="kpi-tile__sub">Pregnancy ref 5–10</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Creatinine</p>
+                    <p class="kpi-tile__value">0.39<span class="unit">mg/dL</span></p>
+                    <p class="kpi-tile__sub">Low (high GFR — good)</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Sodium</p>
+                    <p class="kpi-tile__value">139<span class="unit">mmol/L</span></p>
+                    <p class="kpi-tile__sub">Ref 135–145</p>
+                </div>
+                <div class="kpi-tile">
+                    <p class="eyebrow kpi-tile__eyebrow">Potassium</p>
+                    <p class="kpi-tile__value">4.06<span class="unit">mmol/L</span></p>
+                    <p class="kpi-tile__sub">Ref 3.5–5.0</p>
+                </div>
+            </div>
+
+            <div class="callout callout--watch" style="margin-top: var(--s-4);">
+                <span class="callout__title">Uric acid is the preeclampsia marker to watch</span>
+                Given APLA-positive status, recheck uric acid at every prenatal visit from 28 weeks. If it rises above 3.5 in 2nd trimester or 4.0 in 3rd, alert OB.
+            </div>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>The Kidney in Pregnancy</h4>
+                    <p>Pregnancy profoundly changes kidney function:</p>
+                    <ul>
+                        <li><strong>GFR increases 40-50%:</strong> The kidney hyperfiltrates to clear fetal waste and maternal metabolic byproducts.</li>
+                        <li><strong>Renal blood flow increases:</strong> RPF (renal plasma flow) rises 75%, supporting the higher filtration.</li>
+                        <li><strong>Creatinine and BUN fall:</strong> Due to increased clearance, these values drop relative to non-pregnant ranges.</li>
+                    </ul>
+
+                    <h4>Your Kidney Markers</h4>
+                    <ul>
+                        <li><strong>BUN 5:</strong> Low. Normal non-pregnant range is 7-20 mg/dL. In pregnancy, 5-10 mg/dL is expected and shows excellent kidney perfusion.</li>
+                        <li><strong>Creatinine 0.39:</strong> Low. Normal non-pregnant range is 0.6-1.2 mg/dL. In pregnancy, &lt;0.4 mg/dL is normal and shows high GFR. This is excellent.</li>
+                        <li><strong>BUN/Creatinine ratio:</strong> 5/0.39 = 12.8 (normal ratio is 10-20). Your ratio is perfect.</li>
+                    </ul>
+
+                    <h4>Uric Acid Trajectory</h4>
+                    <p>Uric acid is low at 2.7 mg/dL (normal 2.6-6.0). This is expected in early-mid pregnancy:</p>
+                    <ul>
+                        <li>Early pregnancy: Uric acid falls due to increased GFR (same hyperfiltering effect as BUN/creatinine).</li>
+                        <li>Mid-late pregnancy: Uric acid rises again (3rd trimester), reaching 3-5 mg/dL by term (higher than baseline due to metabolic changes).</li>
+                    </ul>
+                    <p><strong>Why this matters:</strong> Rising uric acid in late pregnancy is a red flag for preeclampsia, especially in APLA patients. Monitor closely at 28, 32, 34, and 36 weeks.</p>
+
+                    <h4>Uric Acid &amp; Preeclampsia Risk</h4>
+                    <p>Given APLA-positive status, preeclampsia risk is 10-15x higher than the general population. Uric acid is a marker:</p>
+                    <ul>
+                        <li><strong>Uric acid &gt;3.5 mg/dL in 2nd trimester or &gt;4.0 in 3rd trimester:</strong> Suggests early preeclampsia or impending preeclampsia.</li>
+                        <li><strong>Your current 2.7:</strong> Low and protective. No preeclampsia signal at 24 weeks.</li>
+                        <li><strong>Key action:</strong> Recheck uric acid at every prenatal visit starting at 28 weeks. If it rises &gt;1 mg/dL from baseline (e.g., 3.7 or higher), alert your OB.</li>
+                        <li><strong>Combined with:</strong> Blood pressure, proteinuria (urine protein), and symptoms (headache, RUQ pain, visual changes) — uric acid helps paint the preeclampsia picture.</li>
+                    </ul>
+
+                    <h4>Electrolytes: Sodium &amp; Potassium</h4>
+                    <ul>
+                        <li><strong>Sodium 139:</strong> Mid-range. Normal in pregnancy is 135-145 mEq/L. Perfect balance maintained despite volume expansion.</li>
+                        <li><strong>Potassium 4.06:</strong> Normal. Important for cardiac rhythm and muscle function.</li>
+                        <li><strong>Interpretation:</strong> Electrolyte balance is excellent. No signs of volume depletion or electrolyte disturbance.</li>
+                    </ul>
+
+                    <h4>3rd Trimester Monitoring — Critical for APLA</h4>
+                    <ul>
+                        <li><strong>Renal function at 28 weeks:</strong> BUN, creatinine, uric acid, electrolytes.</li>
+                        <li><strong>Renal function at 32 weeks:</strong> Same panel. Watch for uric acid rise.</li>
+                        <li><strong>Renal function at 34-36 weeks:</strong> Same panel. If uric acid rises &gt;4.0 mg/dL, arrange more frequent monitoring (weekly).</li>
+                        <li><strong>Urinalysis with each visit:</strong> Screen for proteinuria (another preeclampsia marker).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================
+             SECTION DIVIDER — REFERENCE
+             =================================================== -->
+        <div class="section-divider" role="separator" aria-label="Reference data">
+            <span class="eyebrow">Reference</span>
+        </div>
+
+        <!-- ----- 4. GLUCOSE & DIABETES SCREENING ---------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Glucose &amp; diabetes screening</h2>
+                <span class="panel__trajectory">GDM ruled out</span>
+            </header>
+
+            <p class="panel__summary">
+                Fasting glucose consistently 80–90 mg/dL. 50g Glucose Challenge Test at 24 weeks = 111 mg/dL (well below the 140 threshold). HbA1c 5.1% (Feb 2026) — perfect. GDM is effectively ruled out.
+            </p>
+
+            <div class="chart-frame">
+                <div class="chart-frame__canvas"><canvas id="glucoseChart"></canvas></div>
+            </div>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>Fasting Glucose Trend</h4>
+                    <ul>
+                        <li><strong>Jul-2024 (pre-pregnancy):</strong> 90 mg/dL (normal)</li>
+                        <li><strong>Aug-2025 (baseline pregnancy):</strong> 87 mg/dL (excellent)</li>
+                        <li><strong>Feb-2026 (15 weeks):</strong> 80 mg/dL (excellent)</li>
+                        <li><strong>Apr-2026 (24 weeks):</strong> 86 mg/dL (excellent)</li>
+                    </ul>
+                    <p>All values are solidly in the 70-99 mg/dL normal fasting range. No upward trend, no signs of emerging glucose intolerance.</p>
+
+                    <h4>50g Glucose Challenge Test (GCT)</h4>
+                    <p><strong>What it is:</strong> A screening test given at 24-28 weeks. Drink 50g glucose, check blood glucose 1 hour later.</p>
+                    <ul>
+                        <li><strong>Your result:</strong> 111 mg/dL</li>
+                        <li><strong>Normal threshold:</strong> &lt;140 mg/dL (some labs use 135)</li>
+                        <li><strong>Interpretation:</strong> Pass — significantly below threshold, well into normal range.</li>
+                    </ul>
+                    <p>This single test alone effectively rules out GDM. No need for 3-hour glucose tolerance test.</p>
+
+                    <h4>HbA1c: The Gold Standard</h4>
+                    <p><strong>HbA1c 5.1%</strong> (measured Feb 2026, ~15 weeks):</p>
+                    <ul>
+                        <li><strong>Normal range:</strong> &lt;5.7%</li>
+                        <li><strong>Your value:</strong> 5.1% — optimal, well below pre-diabetes threshold.</li>
+                        <li><strong>What it means:</strong> Your average blood glucose over the past 3 months has been 80-95 mg/dL. Zero signs of impaired glucose metabolism.</li>
+                    </ul>
+
+                    <h4>GDM Risk Factors — Your Profile</h4>
+                    <p>You have several GDM risk factors:</p>
+                    <ul>
+                        <li><strong>Advanced maternal age (40):</strong> 2x increased GDM risk.</li>
+                        <li><strong>Multiparity (G3):</strong> Slight increase in GDM risk after 2+ pregnancies.</li>
+                        <li><strong>APLA status:</strong> Mild indirect risk (APLA patients sometimes have metabolic syndrome).</li>
+                    </ul>
+                    <p>Despite these risk factors, your glucose control is excellent. This suggests good insulin sensitivity and metabolic health.</p>
+
+                    <h4>3rd Trimester Screening</h4>
+                    <ul>
+                        <li>Repeat fasting glucose at 28-32 weeks (standard of care).</li>
+                        <li>Also reasonable to repeat at 34-36 weeks, given advanced maternal age.</li>
+                        <li>If any fasting glucose rises above 100 mg/dL or any postprandial rises above 140, discuss with your OB about a 3-hour GTT.</li>
+                        <li>Given your current excellent values, the risk of late-pregnancy GDM is &lt;2%.</li>
+                    </ul>
+
+                    <h4>Bottom Line</h4>
+                    <p>GDM is effectively ruled out. You can confidently enter the 3rd trimester without glucose concerns. Routine screening remains important, but your excellent metabolic profile is reassuring for baby's health and your gestational outcomes.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- 5. RED CELL INDICES --------------------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Red cell indices (MCV, MCH, RDW-CV)</h2>
+                <span class="panel__trajectory">Excellent recovery</span>
+            </header>
+
+            <p class="panel__summary">
+                MCV recovered dramatically from 73.9 fL (microcytic) to 83.3 fL (approaching normal), showing that iron supplementation is effectively producing normal-sized red cells. MCH followed the same pattern. RDW climbing is expected during recovery as new normocytic cells integrate with aging microcytic cells.
+            </p>
+
+            <div class="chart-frame">
+                <div class="chart-frame__canvas"><canvas id="redCellChart"></canvas></div>
+            </div>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>What the Indices Tell Us</h4>
+                    <ul>
+                        <li><strong>MCV (Mean Corpuscular Volume):</strong> Measures average RBC size. Progression from 73.9 → 83.3 fL means cells are getting bigger and more normal.</li>
+                        <li><strong>MCH (Mean Corpuscular Hemoglobin):</strong> Measures average hemoglobin per cell. Rose from 24.4 → 27.5 pg, approaching the 27-32 reference range.</li>
+                        <li><strong>RDW-CV (Red Cell Distribution Width):</strong> Measures variation in RBC size. Rose from 14.3% → 16.3%, which is expected during recovery but still acceptable.</li>
+                    </ul>
+
+                    <h4>Iron Supplementation Effectiveness</h4>
+                    <p>The steady upward trend in MCV and MCH across all four tests proves that iron is being absorbed and incorporated into new hemoglobin. Without Fexacta, we would expect:</p>
+                    <ul>
+                        <li>MCV to stabilize or worsen at 74-76 fL.</li>
+                        <li>MCH to remain stuck at 24-25 pg.</li>
+                        <li>Progressive anemia (hemoglobin falling further).</li>
+                    </ul>
+                    <p>Instead, we see recovery. This is a success story.</p>
+
+                    <h4>RDW Trajectory — Not a Concern</h4>
+                    <p>RDW-CV climbed from 14.3% → 16.3%, but this is temporary:</p>
+                    <ul>
+                        <li>It peaks during the transition from microcytic to normocytic RBC populations.</li>
+                        <li>As time passes, old microcytic cells die (120-day lifespan) and are replaced entirely by new iron-replete cells.</li>
+                        <li>RDW will normalize in 4-8 weeks as the population homogenizes.</li>
+                        <li>Watch it at 28 weeks — expect it to be stable or declining by then.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- 6. WHITE BLOOD CELLS & IMMUNITY --------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">White blood cells &amp; immunity</h2>
+                <span class="panel__trajectory">Physiological — no concern</span>
+            </header>
+
+            <p class="panel__summary">
+                Mild leukocytosis (WBC 11.2–11.4) is normal in pregnancy. The neutrophilia (ANC 7–8.5) reflects the immune system's protective response. Lymphocyte percentage dropping is also physiological — the immune system shifts to protect the fetus while maintaining appropriate immune response.
+            </p>
+
+            <div class="chart-frame">
+                <div class="chart-frame__canvas"><canvas id="wbcChart"></canvas></div>
+            </div>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>Leukocytosis in Pregnancy is Normal</h4>
+                    <p>WBC typically ranges 4,000-10,000 in non-pregnant women, but in pregnancy:</p>
+                    <ul>
+                        <li>WBC rises to 10,500-15,000 by 3rd trimester — a 50% increase.</li>
+                        <li>Your current WBC of 11.2-11.4 is early-to-mid pregnancy range (expected for 24 weeks).</li>
+                        <li>The increase is driven by stress hormones (cortisol, catecholamines) driving myelopoiesis, placental production of G-CSF, and immune adaptation to tolerate fetal antigens while maintaining protective immunity.</li>
+                    </ul>
+
+                    <h4>Neutrophilia is Expected</h4>
+                    <p>Absolute neutrophil count (ANC) at 7-8.5 is within the normal pregnancy range:</p>
+                    <ul>
+                        <li>Non-pregnant range: 2-7 × 10³/µL</li>
+                        <li>Pregnancy range: 5-14 × 10³/µL</li>
+                        <li>Your values (7-8.5) are perfectly normal.</li>
+                        <li>Neutrophilia increases as pregnancy advances, peaking around labor.</li>
+                    </ul>
+
+                    <h4>Lymphocyte Shift — Immunological Adaptation</h4>
+                    <p>As WBC rises, the percentage of lymphocytes typically falls (though absolute lymphocyte count may stay steady). This is part of the shift from Th1 (cell-mediated) to Th2 (humoral) immunity — a protective mechanism to prevent maternal immune rejection of the fetus.</p>
+
+                    <h4>APLA Consideration</h4>
+                    <p>Given your APLA-positive status, maintaining this modest, stable leukocytosis is actually favorable. Patients with APLA need immune competence (to clear placental microthrombi) but also immune tolerance (to prevent anti-fetal responses). Your WBC profile suggests a healthy balance.</p>
+
+                    <h4>No Infection Sign</h4>
+                    <p>No leftward shift (absence of immature band neutrophils), normal lymphocyte percentage, and stable values across all four tests rule out infection or acute immune activation. Continue current monitoring.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- 7. LIPID PROFILE ------------------------------------ -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Lipid profile (Feb 2026)</h2>
+                <span class="panel__trajectory">Favorable</span>
+            </header>
+
+            <p class="panel__summary">
+                Total cholesterol 195, triglycerides 115, HDL 60, LDL 112, non-HDL 135. HDL is protective. LDL mildly elevated but normal for pregnancy. Lipids naturally increase 25–50% during pregnancy to support fetal development. No intervention needed.
+            </p>
+
+            <div class="chart-frame">
+                <div class="chart-frame__canvas"><canvas id="lipidChart"></canvas></div>
+            </div>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>Lipid Panel Breakdown</h4>
+                    <ul>
+                        <li><strong>Total Cholesterol 195:</strong> Desirable in non-pregnant; borderline in pregnancy. Expected to rise to 220-250 by 3rd trimester.</li>
+                        <li><strong>Triglycerides 115:</strong> Normal (ideal &lt;100 in non-pregnant, but &lt;150 is acceptable in pregnancy).</li>
+                        <li><strong>HDL 60:</strong> Excellent. This is protective cholesterol; &gt;50 is protective in women.</li>
+                        <li><strong>LDL 112:</strong> Mildly elevated in non-pregnant terms (should be &lt;100), but normal for pregnancy.</li>
+                        <li><strong>Non-HDL 135:</strong> Borderline (calculated as Total - HDL). Represents non-protective cholesterol.</li>
+                    </ul>
+
+                    <h4>Why Lipids Rise in Pregnancy</h4>
+                    <ul>
+                        <li><strong>Estrogen surge:</strong> Increases hepatic lipid production and reduces LDL clearance.</li>
+                        <li><strong>Fetal demands:</strong> Cholesterol is essential for fetal cell membrane synthesis (trillions of cells forming), placental steroid hormone production (progesterone, estriol), and myelin formation (fetal CNS development).</li>
+                        <li><strong>Expected rise:</strong> Total cholesterol typically increases 25-50% (175 → 240 mg/dL) by 3rd trimester. TG can rise 50-300%.</li>
+                    </ul>
+
+                    <h4>Your Profile at 15 Weeks</h4>
+                    <p>At 15 weeks, your lipids are still relatively moderate. Expected trajectory:</p>
+                    <ul>
+                        <li><strong>Now (15 weeks):</strong> Total 195, TG 115</li>
+                        <li><strong>Expected at 28 weeks:</strong> Total 230-240, TG 150-180</li>
+                        <li><strong>Expected at 36 weeks:</strong> Total 250-260, TG 200-300</li>
+                    </ul>
+                    <p>This is normal and physiological. No treatment needed unless Total &gt;300 or TG &gt;400.</p>
+
+                    <h4>HDL: Your Protective Factor</h4>
+                    <p>HDL of 60 is excellent for women and is strongly protective against cardiovascular disease. The high HDL offsets the mild LDL elevation, making your overall cardiovascular risk low.</p>
+
+                    <h4>APLA Consideration</h4>
+                    <p>APLA patients sometimes have mild dyslipidemia or oxidized LDL (more atherogenic). Your current HDL/LDL ratio is favorable. Continue:</p>
+                    <ul>
+                        <li>Omega-3 rich foods (fish, flaxseed, walnuts) — benefits HDL and TG.</li>
+                        <li>Fiber-rich diet — supports lipid metabolism.</li>
+                        <li>Regular activity (walking, prenatal yoga) — maintains HDL.</li>
+                    </ul>
+
+                    <h4>3rd Trimester Recheck</h4>
+                    <ul>
+                        <li>Lipid recheck at 32-34 weeks is reasonable given advanced maternal age and APLA status.</li>
+                        <li>If Total &gt;300 or TG &gt;400, discuss with your OB (rare in pregnancy, but possible).</li>
+                        <li>Some OBs recommend statin use if lipids are severely elevated in pregnancy with high risk factors; yours are not.</li>
+                    </ul>
+
+                    <h4>Postpartum Plan</h4>
+                    <ul>
+                        <li>Lipids will normalize 3-4 weeks after delivery.</li>
+                        <li>Recheck lipids at 3 months postpartum to establish true non-pregnant baseline.</li>
+                        <li>If non-pregnant Total &gt;240 or LDL &gt;130, discuss cardiovascular risk reduction with your primary care physician.</li>
+                    </ul>
+
+                    <h4>Bottom Line</h4>
+                    <p>Your lipid profile is favorable for pregnancy. The mild lipid elevation is expected and physiological. No treatment needed. Focus on nutrition, activity, and routine monitoring.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- 8. THYROID FUNCTION --------------------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Thyroid function (Feb 2026)</h2>
+                <span class="panel__trajectory">Optimal</span>
+            </header>
+
+            <p class="panel__summary">
+                TSH 1.559 is well within the 2nd trimester reference range (0.2–3.0). Free T4 12.3 is mid-range. Free T3 1.49 is stable. Thyroid function is optimal for fetal brain development.
+            </p>
+
+            <table class="data-table" aria-label="Thyroid markers">
+                <thead>
+                    <tr>
+                        <th scope="col">Marker</th>
+                        <th scope="col" class="num">Value</th>
+                        <th scope="col">2nd-trim ref</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>TSH</td>     <td class="num">1.559 mIU/L</td><td>0.2 – 3.0</td></tr>
+                    <tr><td>Free T4</td> <td class="num">12.3 pmol/L</td><td>10 – 14</td></tr>
+                    <tr><td>Free T3</td> <td class="num">1.49 pmol/L</td><td>1.0 – 2.4</td></tr>
+                </tbody>
+            </table>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>Why Thyroid Matters in Pregnancy</h4>
+                    <p>Adequate thyroid hormone (T4 and T3) is critical for:</p>
+                    <ul>
+                        <li><strong>Fetal brain development:</strong> Thyroid hormone is essential for CNS myelination and neurogenesis. Even mild maternal hypothyroidism can impair fetal IQ (up to 10-point deficit if untreated).</li>
+                        <li><strong>Placental function:</strong> T4/T3 support placental vascularization and nutrient transport.</li>
+                        <li><strong>Metabolic support:</strong> Increased maternal metabolism supports pregnancy's higher energy demands.</li>
+                    </ul>
+
+                    <h4>Your Thyroid Values</h4>
+                    <ul>
+                        <li><strong>TSH 1.559:</strong> Perfect. Well within 2nd trimester range (0.2-3.0). Not suppressed (no Graves or overtreatment), not elevated (no hypothyroidism).</li>
+                        <li><strong>Free T4 12.3:</strong> Mid-range within the 10-14 pmol/L reference. Adequate for fetal development.</li>
+                        <li><strong>Free T3 1.49:</strong> Normal for pregnancy. T3 is the active form; this value shows good peripheral conversion of T4 → T3.</li>
+                    </ul>
+
+                    <h4>Trimester-Specific Reference Ranges</h4>
+                    <p>Pregnancy reference ranges differ from non-pregnant ranges:</p>
+                    <ul>
+                        <li><strong>1st trimester:</strong> TSH 0.1–2.5 mIU/L (lower than baseline)</li>
+                        <li><strong>2nd trimester:</strong> TSH 0.2–3.0 mIU/L (still lower)</li>
+                        <li><strong>3rd trimester:</strong> TSH 0.2–3.5 mIU/L (gradual rise allowed)</li>
+                    </ul>
+                    <p>Some sources recommend tighter targets (TSH &lt;2.5 ideally) for women on replacement therapy. You're not on replacement, so your TSH of 1.559 is excellent.</p>
+
+                    <h4>APLA &amp; Thyroid</h4>
+                    <p>APLA patients have increased risk of:</p>
+                    <ul>
+                        <li>Autoimmune thyroiditis (Hashimoto's) — 15-20% of APLA patients.</li>
+                        <li>Thyroid antibodies (anti-TPO, anti-thyroglobulin).</li>
+                    </ul>
+                    <p>Your TSH/Free T4/Free T3 profile shows no signs of thyroid autoimmunity or dysfunction. This is reassuring.</p>
+
+                    <h4>Monitoring Plan</h4>
+                    <ul>
+                        <li><strong>Recheck at 28 weeks:</strong> Standard of care for all pregnant women to ensure thyroid function remains stable.</li>
+                        <li><strong>Recheck at 34-36 weeks:</strong> Optional but reasonable given APLA status (to catch late-pregnancy thyroid drift).</li>
+                        <li><strong>If TSH rises &gt;3.5 at any point:</strong> Discuss levothyroxine with your OB (even if TSH is technically "normal" post-pregnancy ranges), as fetal needs are higher.</li>
+                        <li><strong>Postpartum:</strong> Recheck TSH at 6-8 weeks postpartum. Risk of postpartum thyroiditis is ~5-10%, and APLA patients may be at higher risk.</li>
+                    </ul>
+
+                    <h4>Nutrition Support</h4>
+                    <ul>
+                        <li><strong>Iodine:</strong> Aim for 220 µg/day (pregnant women need more than non-pregnant). Iodized salt, dairy, eggs, seaweed.</li>
+                        <li><strong>Selenium:</strong> 60 µg/day. Supports T4 → T3 conversion. Found in Brazil nuts, fish, eggs.</li>
+                        <li><strong>Zinc:</strong> Supports thyroid hormone receptors. Found in oysters, beef, pumpkin seeds.</li>
+                    </ul>
+
+                    <h4>Bottom Line</h4>
+                    <p>Your thyroid is working perfectly. No replacement therapy needed. Continue routine monitoring and ensure adequate iodine/selenium intake. Fetal brain development is well-supported.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- 9. LIVER FUNCTION ----------------------------------- -->
+        <section class="panel">
+            <header class="panel__head">
+                <h2 class="panel__title">Liver function (Apr 2026)</h2>
+                <span class="panel__trajectory">All enzymes normal</span>
+            </header>
+
+            <p class="panel__summary">
+                All liver enzymes (SGOT, SGPT, ALP, GGT) are well within normal range. Bilirubin is normal. The HCQS (hydroxychloroquine) use is safe — no liver toxicity detected.
+            </p>
+
+            <table class="data-table" aria-label="Liver markers">
+                <thead>
+                    <tr>
+                        <th scope="col">Marker</th>
+                        <th scope="col" class="num">Value</th>
+                        <th scope="col">Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>SGOT (AST)</td>      <td class="num">14 U/L</td>      <td>10 – 40</td></tr>
+                    <tr><td>SGPT (ALT)</td>      <td class="num">12 U/L</td>      <td>7 – 56</td></tr>
+                    <tr><td>ALP</td>             <td class="num">98 U/L</td>      <td>30 – 120</td></tr>
+                    <tr><td>GGT</td>             <td class="num">31 U/L</td>      <td>9 – 48</td></tr>
+                    <tr><td>Bilirubin (Total)</td><td class="num">0.29 mg/dL</td> <td>0.1 – 1.2</td></tr>
+                </tbody>
+            </table>
+
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)" aria-expanded="false">
+                <span>Read full analysis</span>
+                <span aria-hidden="true"></span>
+            </button>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <h4>Liver Enzyme Overview</h4>
+                    <ul>
+                        <li><strong>SGOT (AST):</strong> Aspartate aminotransferase. Found in liver, heart, muscle. Reflects hepatocyte turnover. Your 14 is low-normal (good sign).</li>
+                        <li><strong>SGPT (ALT):</strong> Alanine aminotransferase. More liver-specific than AST. Your 12 is low-normal (excellent).</li>
+                        <li><strong>ALP:</strong> Alkaline phosphatase. Rises in pregnancy due to placental contribution (placental ALP isoenzyme). Your 98 is well within range and lower than typical 3rd trimester values (often 120-150).</li>
+                        <li><strong>GGT:</strong> Gamma-glutamyl transferase. Marker of bile duct function. Your 31 is normal and stable.</li>
+                        <li><strong>Bilirubin:</strong> Breakdown product of hemoglobin. Your 0.29 is normal (not elevated, not low).</li>
+                    </ul>
+
+                    <h4>Why These Values Are Reassuring</h4>
+                    <p>Given that you're taking hydroxychloroquine (HCQS) for APLA management, the normal liver enzymes are critical reassurance:</p>
+                    <ul>
+                        <li>HCQS can rarely cause hepatotoxicity (usually at high cumulative doses or in susceptible patients).</li>
+                        <li>Your enzymes show zero evidence of liver injury from HCQS.</li>
+                        <li>Safe to continue HCQS through pregnancy.</li>
+                    </ul>
+
+                    <h4>ALP in Pregnancy</h4>
+                    <p>ALP naturally rises in pregnancy (98 U/L is expected at 24 weeks). By 3rd trimester:</p>
+                    <ul>
+                        <li>Total ALP rises 40-50% above baseline due to placental production.</li>
+                        <li>Placental ALP isoenzyme contributes 60-80% of total ALP in late pregnancy.</li>
+                        <li>This is normal and not a sign of liver disease.</li>
+                        <li>Expected 3rd trimester ALP: 110-160 U/L (your current 98 is already trending upward, which is normal).</li>
+                    </ul>
+
+                    <h4>HCQS Monitoring</h4>
+                    <p>For patients on HCQS, standard monitoring includes:</p>
+                    <ul>
+                        <li>Liver function tests (AST, ALT) every 6-12 months (you're being checked more frequently in pregnancy, which is good).</li>
+                        <li>Ophthalmology screening (HCQS can rarely affect the retina) — important to arrange postpartum if not done recently.</li>
+                    </ul>
+                    <p>Your current liver profile is perfect for continuing HCQS.</p>
+
+                    <h4>Cholestasis Screening</h4>
+                    <p>Intrahepatic cholestasis of pregnancy (ICP) is rare but important in late pregnancy:</p>
+                    <ul>
+                        <li>Presents with itching (pruritus) and elevated bile acids.</li>
+                        <li>Associated with increased stillbirth risk if untreated.</li>
+                        <li>Your normal GGT, bilirubin, and ALT argue against ICP at 24 weeks.</li>
+                        <li>If you develop itching (especially palms/soles) in 3rd trimester, inform your OB immediately.</li>
+                    </ul>
+
+                    <h4>3rd Trimester Monitoring</h4>
+                    <ul>
+                        <li>Liver function recheck at 32-34 weeks is reasonable given HCQS use (standard of care).</li>
+                        <li>If any enzyme rises &gt;2x upper limit of normal, discuss with rheumatology and OB before continuing HCQS.</li>
+                        <li>Post-delivery: recheck liver enzymes at 6 weeks postpartum to confirm return to baseline.</li>
+                    </ul>
+
+                    <h4>Bottom Line</h4>
+                    <p>Liver function is excellent. Safe to continue HCQS. ALP will rise further in 3rd trimester, but that's normal and expected. No liver-related concerns.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ===================================================
+         FOOTER (with provenance)
+         =================================================== -->
+    <footer class="footer container" role="contentinfo">
+        <p data-dyn-last-updated="long">NBB Health Dashboard · Last updated: 25 April 2026 · Lab: Tata 1mg</p>
+        <p>Reference only. Confirm any change with your doctor. · Built for Nikita and HB.</p>
     </footer>
 
-    <!-- Chart.js Scripts -->
+    <!-- ===================================================
+         CHART.JS INITIALISATIONS
+         (Data + IDs untouched. Palette restyle ships in Phase 7.)
+         =================================================== -->
     <script>
-        // Color palette
-        const colors = {
-            primary: '#BE185D',
-            secondary: '#7C3AED',
-            success: '#059669',
-            warning: '#D97706',
-            danger: '#DC2626',
-            lightPrimary: '#FCE7F3',
-            lightSecondary: '#F3E8FF',
-            grid: '#E8EAED',
-            text: '#5F6368'
+        // Phase 7 — Pulse palette across every Chart.js instance.
+        // Single point of adjustment: edit PULSE_PALETTE here; all charts inherit.
+        const PULSE_PALETTE = {
+            ink: '#1F1F1F', inkSecondary: '#5A5A5A', inkTertiary: '#8A8682',
+            sage: '#2C7A4F', sageTint: '#EAF2EC',
+            clay: '#C77B2C', clayTint: '#F7EBDD',
+            brick: '#B33636', brickTint: '#F5E5E3',
+            terracotta: '#CC785C', terracottaTint: '#F6E2DA',
+            hairline: '#E3E0D6', surface: '#FAF9F5'
         };
 
-        // Chart default options
-        Chart.defaults.font.family = "'Roboto', sans-serif";
-        Chart.defaults.color = colors.text;
-        Chart.defaults.borderColor = colors.grid;
+        // Legacy alias kept so existing per-chart colour references below
+        // resolve to Pulse tokens without per-line surgery.
+        const colors = {
+            primary:        PULSE_PALETTE.ink,        // patient series — the spine
+            secondary:      PULSE_PALETTE.sage,       // positive / "in-range"
+            success:        PULSE_PALETTE.sage,
+            warning:        PULSE_PALETTE.clay,
+            danger:         PULSE_PALETTE.brick,
+            lightPrimary:   'rgba(31, 31, 31, 0.04)',
+            lightSecondary: PULSE_PALETTE.sageTint,
+            grid:           PULSE_PALETTE.hairline,
+            text:           PULSE_PALETTE.inkSecondary
+        };
+
+        // Chart.js 3.x global defaults — restrained Pulse aesthetic.
+        Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif";
+        Chart.defaults.color = PULSE_PALETTE.inkSecondary;
+        Chart.defaults.borderColor = PULSE_PALETTE.hairline;
+        Chart.defaults.animation = { duration: 300, easing: 'easeOutQuart' };
+        Chart.defaults.elements.line.borderWidth = 2;
+        Chart.defaults.elements.line.tension = 0.3;
+        Chart.defaults.elements.point.radius = 3;
+        Chart.defaults.elements.point.hoverRadius = 5;
+        Chart.defaults.elements.point.borderWidth = 1;
 
         // 1. ANEMIA PANEL
         const anemiaCtx = document.getElementById('anemiaChart').getContext('2d');
@@ -1162,47 +863,39 @@
                     {
                         label: 'Hemoglobin (g/dL)',
                         data: [12.0, 11.3, 10.9, 11.3],
-                        borderColor: '#E11D48',
-                        backgroundColor: 'rgba(225, 29, 72, 0.05)',
-                        borderWidth: 2.5,
+                        borderColor: PULSE_PALETTE.ink,
+                        backgroundColor: 'rgba(31, 31, 31, 0.04)',
                         fill: true,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#E11D48',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
+                        pointBackgroundColor: PULSE_PALETTE.ink,
+                        pointBorderColor: PULSE_PALETTE.surface,
                         yAxisID: 'y'
                     },
                     {
                         label: 'HCT (%)',
                         data: [35.9, 34.1, 32.9, 34.2],
-                        borderColor: '#F97316',
-                        backgroundColor: 'rgba(249, 115, 22, 0.05)',
-                        borderWidth: 2.5,
+                        borderColor: PULSE_PALETTE.sage,
+                        backgroundColor: PULSE_PALETTE.sageTint,
                         fill: true,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#F97316',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
+                        pointBackgroundColor: PULSE_PALETTE.sage,
+                        pointBorderColor: PULSE_PALETTE.surface,
                         yAxisID: 'y1'
                     },
                     {
-                        label: 'Reference Range (Hb)',
+                        label: 'Hb reference (12)',
                         data: [12, 12, 12, 12],
-                        borderColor: 'rgba(34, 197, 94, 0.3)',
-                        borderDash: [5, 5],
-                        borderWidth: 1.5,
+                        borderColor: PULSE_PALETTE.inkTertiary,
+                        borderDash: [4, 4],
+                        borderWidth: 1,
                         fill: false,
                         pointRadius: 0,
                         yAxisID: 'y'
                     },
                     {
-                        label: 'Reference Range (HCT)',
+                        label: 'HCT reference (36)',
                         data: [36, 36, 36, 36],
-                        borderColor: 'rgba(34, 197, 94, 0.3)',
-                        borderDash: [5, 5],
-                        borderWidth: 1.5,
+                        borderColor: PULSE_PALETTE.inkTertiary,
+                        borderDash: [4, 4],
+                        borderWidth: 1,
                         fill: false,
                         pointRadius: 0,
                         yAxisID: 'y1'
@@ -1214,16 +907,18 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 12 }, padding: 12 } },
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 }, padding: 12, color: PULSE_PALETTE.inkSecondary } },
                     tooltip: {
-                        backgroundColor: 'rgba(32, 33, 36, 0.9)',
-                        titleFont: { size: 13, weight: 'bold' },
-                        bodyFont: { size: 12 },
+                        backgroundColor: PULSE_PALETTE.ink,
+                        titleColor: '#F0EEE6',
+                        bodyColor: '#F0EEE6',
+                        borderColor: PULSE_PALETTE.hairline,
+                        borderWidth: 1,
                         padding: 10,
                         cornerRadius: 6,
                         callbacks: {
                             afterLabel: function(context) {
-                                if (context.datasetIndex === 0 && context.dataIndex === 3) return '✓ Recovering';
+                                if (context.datasetIndex === 0 && context.dataIndex === 3) return 'Recovering';
                                 return '';
                             }
                         }
@@ -1233,17 +928,24 @@
                     y: {
                         type: 'linear',
                         position: 'left',
-                        title: { display: true, text: 'Hemoglobin (g/dL)', font: { size: 12, weight: 'bold' } },
+                        title: { display: true, text: 'Hemoglobin (g/dL)', font: { size: 11 }, color: PULSE_PALETTE.inkTertiary },
                         min: 10,
-                        max: 14
+                        max: 14,
+                        grid: { color: PULSE_PALETTE.hairline },
+                        ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } }
                     },
                     y1: {
                         type: 'linear',
                         position: 'right',
-                        title: { display: true, text: 'HCT (%)', font: { size: 12, weight: 'bold' } },
+                        title: { display: true, text: 'HCT (%)', font: { size: 11 }, color: PULSE_PALETTE.inkTertiary },
                         min: 30,
                         max: 40,
-                        grid: { drawOnChartArea: false }
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } }
+                    },
+                    x: {
+                        grid: { color: PULSE_PALETTE.hairline },
+                        ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } }
                     }
                 }
             }
@@ -1259,38 +961,26 @@
                     {
                         label: 'MCV (fL)',
                         data: [77.7, 73.9, 74.6, 83.3],
-                        borderColor: '#8B5CF6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.05)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#8B5CF6',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2
+                        borderColor: PULSE_PALETTE.ink,
+                        backgroundColor: 'rgba(31, 31, 31, 0.04)',
+                        pointBackgroundColor: PULSE_PALETTE.ink,
+                        pointBorderColor: PULSE_PALETTE.surface
                     },
                     {
                         label: 'MCH (pg)',
                         data: [26.0, 24.4, 24.8, 27.5],
-                        borderColor: '#06B6D4',
-                        backgroundColor: 'rgba(6, 182, 212, 0.05)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#06B6D4',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2
+                        borderColor: PULSE_PALETTE.sage,
+                        backgroundColor: PULSE_PALETTE.sageTint,
+                        pointBackgroundColor: PULSE_PALETTE.sage,
+                        pointBorderColor: PULSE_PALETTE.surface
                     },
                     {
                         label: 'RDW-CV (%)',
                         data: [14.3, 14.5, 14.8, 16.3],
-                        borderColor: '#EC4899',
-                        backgroundColor: 'rgba(236, 72, 153, 0.05)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#EC4899',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2
+                        borderColor: PULSE_PALETTE.clay,
+                        backgroundColor: PULSE_PALETTE.clayTint,
+                        pointBackgroundColor: PULSE_PALETTE.clay,
+                        pointBorderColor: PULSE_PALETTE.surface
                     }
                 ]
             },
@@ -1299,11 +989,12 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 12 }, padding: 12 } },
-                    tooltip: { backgroundColor: 'rgba(32, 33, 36, 0.9)', titleFont: { size: 13 }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 6 }
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 }, padding: 12, color: PULSE_PALETTE.inkSecondary } },
+                    tooltip: { backgroundColor: PULSE_PALETTE.ink, titleColor: '#F0EEE6', bodyColor: '#F0EEE6', borderColor: PULSE_PALETTE.hairline, borderWidth: 1, padding: 10, cornerRadius: 6 }
                 },
                 scales: {
-                    y: { title: { display: true, text: 'Value', font: { size: 12, weight: 'bold' } } }
+                    y: { title: { display: true, text: 'Value', font: { size: 11 }, color: PULSE_PALETTE.inkTertiary }, grid: { color: PULSE_PALETTE.hairline }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } },
+                    x: { grid: { color: PULSE_PALETTE.hairline }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } }
                 }
             }
         });
@@ -1318,35 +1009,27 @@
                     {
                         label: 'WBC (K/µL)',
                         data: [11.44, 11.22, 11.39, 11.21],
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#10B981',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
+                        borderColor: PULSE_PALETTE.ink,
+                        backgroundColor: 'rgba(31, 31, 31, 0.04)',
+                        pointBackgroundColor: PULSE_PALETTE.ink,
+                        pointBorderColor: PULSE_PALETTE.surface,
                         yAxisID: 'y'
                     },
                     {
                         label: 'ANC (K/µL)',
                         data: [7.09, 8.12, 8.51, 8.42],
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#3B82F6',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
+                        borderColor: PULSE_PALETTE.sage,
+                        backgroundColor: PULSE_PALETTE.sageTint,
+                        pointBackgroundColor: PULSE_PALETTE.sage,
+                        pointBorderColor: PULSE_PALETTE.surface,
                         yAxisID: 'y1'
                     },
                     {
-                        label: 'WBC Ref (10)',
+                        label: 'WBC reference (10)',
                         data: [10, 10, 10, 10],
-                        borderColor: 'rgba(34, 197, 94, 0.3)',
-                        borderDash: [5, 5],
-                        borderWidth: 1.5,
+                        borderColor: PULSE_PALETTE.inkTertiary,
+                        borderDash: [4, 4],
+                        borderWidth: 1,
                         fill: false,
                         pointRadius: 0,
                         yAxisID: 'y'
@@ -1358,12 +1041,13 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 12 }, padding: 12 } },
-                    tooltip: { backgroundColor: 'rgba(32, 33, 36, 0.9)', titleFont: { size: 13 }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 6 }
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 }, padding: 12, color: PULSE_PALETTE.inkSecondary } },
+                    tooltip: { backgroundColor: PULSE_PALETTE.ink, titleColor: '#F0EEE6', bodyColor: '#F0EEE6', borderColor: PULSE_PALETTE.hairline, borderWidth: 1, padding: 10, cornerRadius: 6 }
                 },
                 scales: {
-                    y: { position: 'left', title: { display: true, text: 'WBC', font: { size: 12, weight: 'bold' } } },
-                    y1: { position: 'right', title: { display: true, text: 'ANC', font: { size: 12, weight: 'bold' } }, grid: { drawOnChartArea: false } }
+                    y: { position: 'left', title: { display: true, text: 'WBC', font: { size: 11 }, color: PULSE_PALETTE.inkTertiary }, grid: { color: PULSE_PALETTE.hairline }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } },
+                    y1: { position: 'right', title: { display: true, text: 'ANC', font: { size: 11 }, color: PULSE_PALETTE.inkTertiary }, grid: { drawOnChartArea: false }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } },
+                    x: { grid: { color: PULSE_PALETTE.hairline }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } }
                 }
             }
         });
@@ -1378,31 +1062,27 @@
                     {
                         label: 'Platelets (K/µL)',
                         data: [367, 362, 297, 234],
-                        borderColor: '#DC2626',
-                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                        borderWidth: 3,
+                        borderColor: PULSE_PALETTE.clay,
+                        backgroundColor: PULSE_PALETTE.clayTint,
                         fill: true,
-                        tension: 0.4,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#DC2626',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2
+                        pointBackgroundColor: PULSE_PALETTE.clay,
+                        pointBorderColor: PULSE_PALETTE.surface
                     },
                     {
-                        label: 'Normal Min (150)',
+                        label: 'Normal min (150)',
                         data: [150, 150, 150, 150],
-                        borderColor: 'rgba(34, 197, 94, 0.4)',
-                        borderDash: [5, 5],
-                        borderWidth: 2,
+                        borderColor: PULSE_PALETTE.inkTertiary,
+                        borderDash: [4, 4],
+                        borderWidth: 1,
                         fill: false,
                         pointRadius: 0
                     },
                     {
-                        label: 'Normal Max (410)',
+                        label: 'Normal max (410)',
                         data: [410, 410, 410, 410],
-                        borderColor: 'rgba(34, 197, 94, 0.4)',
-                        borderDash: [5, 5],
-                        borderWidth: 2,
+                        borderColor: PULSE_PALETTE.inkTertiary,
+                        borderDash: [4, 4],
+                        borderWidth: 1,
                         fill: false,
                         pointRadius: 0
                     }
@@ -1413,11 +1093,13 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 12 }, padding: 12 } },
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 }, padding: 12, color: PULSE_PALETTE.inkSecondary } },
                     tooltip: {
-                        backgroundColor: 'rgba(32, 33, 36, 0.9)',
-                        titleFont: { size: 13 },
-                        bodyFont: { size: 12 },
+                        backgroundColor: PULSE_PALETTE.ink,
+                        titleColor: '#F0EEE6',
+                        bodyColor: '#F0EEE6',
+                        borderColor: PULSE_PALETTE.hairline,
+                        borderWidth: 1,
                         padding: 10,
                         cornerRadius: 6,
                         callbacks: {
@@ -1425,7 +1107,7 @@
                                 if (context.datasetIndex === 0) {
                                     const decline = (367 - context.parsed.y);
                                     const pct = ((decline / 367) * 100).toFixed(1);
-                                    return `Decline: ${pct}%`;
+                                    return 'Decline: ' + pct + '%';
                                 }
                                 return '';
                             }
@@ -1434,10 +1116,13 @@
                 },
                 scales: {
                     y: {
-                        title: { display: true, text: 'Platelets (K/µL)', font: { size: 12, weight: 'bold' } },
+                        title: { display: true, text: 'Platelets (K/µL)', font: { size: 11 }, color: PULSE_PALETTE.inkTertiary },
                         min: 100,
-                        max: 420
-                    }
+                        max: 420,
+                        grid: { color: PULSE_PALETTE.hairline },
+                        ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } }
+                    },
+                    x: { grid: { color: PULSE_PALETTE.hairline }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } }
                 }
             }
         });
@@ -1450,45 +1135,40 @@
                 labels: ['Jul-2024\n(Pre-pregnancy)', 'Aug-2025\n(Baseline)', 'Feb-2026\n(~15 wks)', 'Apr-2026\n(~24 wks)'],
                 datasets: [
                     {
-                        label: 'Fasting Glucose (mg/dL)',
+                        label: 'Fasting glucose (mg/dL)',
                         data: [90, 87, 80, 86],
-                        borderColor: '#059669',
-                        backgroundColor: 'rgba(5, 150, 105, 0.05)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#059669',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
+                        borderColor: PULSE_PALETTE.ink,
+                        backgroundColor: 'rgba(31, 31, 31, 0.04)',
+                        pointBackgroundColor: PULSE_PALETTE.ink,
+                        pointBorderColor: PULSE_PALETTE.surface,
                         yAxisID: 'y'
                     },
                     {
                         label: 'GCT 50g (mg/dL)',
                         data: [null, null, null, 111],
-                        borderColor: '#10B981',
-                        pointRadius: 7,
-                        pointBackgroundColor: '#10B981',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
+                        borderColor: PULSE_PALETTE.sage,
+                        pointRadius: 5,
+                        pointBackgroundColor: PULSE_PALETTE.sage,
+                        pointBorderColor: PULSE_PALETTE.surface,
                         fill: false,
                         yAxisID: 'y'
                     },
                     {
-                        label: 'Normal Range (70-99)',
+                        label: 'Normal range (99)',
                         data: [99, 99, 99, 99],
-                        borderColor: 'rgba(34, 197, 94, 0.3)',
-                        borderDash: [5, 5],
-                        borderWidth: 1.5,
+                        borderColor: PULSE_PALETTE.inkTertiary,
+                        borderDash: [4, 4],
+                        borderWidth: 1,
                         fill: false,
                         pointRadius: 0,
                         yAxisID: 'y'
                     },
                     {
-                        label: 'GCT Threshold (140)',
+                        label: 'GCT threshold (140)',
                         data: [140, 140, 140, 140],
-                        borderColor: 'rgba(217, 119, 6, 0.3)',
-                        borderDash: [5, 5],
-                        borderWidth: 1.5,
+                        borderColor: PULSE_PALETTE.clay,
+                        borderDash: [4, 4],
+                        borderWidth: 1,
                         fill: false,
                         pointRadius: 0,
                         yAxisID: 'y'
@@ -1500,15 +1180,18 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { size: 12 }, padding: 12 } },
-                    tooltip: { backgroundColor: 'rgba(32, 33, 36, 0.9)', titleFont: { size: 13 }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 6 }
+                    legend: { position: 'top', labels: { boxWidth: 12, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 }, padding: 12, color: PULSE_PALETTE.inkSecondary } },
+                    tooltip: { backgroundColor: PULSE_PALETTE.ink, titleColor: '#F0EEE6', bodyColor: '#F0EEE6', borderColor: PULSE_PALETTE.hairline, borderWidth: 1, padding: 10, cornerRadius: 6 }
                 },
                 scales: {
                     y: {
-                        title: { display: true, text: 'Glucose (mg/dL)', font: { size: 12, weight: 'bold' } },
+                        title: { display: true, text: 'Glucose (mg/dL)', font: { size: 11 }, color: PULSE_PALETTE.inkTertiary },
                         min: 60,
-                        max: 160
-                    }
+                        max: 160,
+                        grid: { color: PULSE_PALETTE.hairline },
+                        ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } }
+                    },
+                    x: { grid: { color: PULSE_PALETTE.hairline }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } }
                 }
             }
         });
@@ -1523,8 +1206,16 @@
                     {
                         label: 'Value (mg/dL)',
                         data: [195, 115, 60, 112, 135],
-                        backgroundColor: ['#8B5CF6', '#06B6D4', '#10B981', '#F97316', '#EC4899'],
-                        borderRadius: 8,
+                        // Total / TG / non-HDL = ink (neutral data spine).
+                        // HDL = sage (protective). LDL = clay (mildly elevated, watch).
+                        backgroundColor: [
+                            PULSE_PALETTE.ink,
+                            PULSE_PALETTE.ink,
+                            PULSE_PALETTE.sage,
+                            PULSE_PALETTE.clay,
+                            PULSE_PALETTE.ink
+                        ],
+                        borderRadius: 4,
                         borderWidth: 0
                     }
                 ]
@@ -1534,20 +1225,25 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { backgroundColor: 'rgba(32, 33, 36, 0.9)', titleFont: { size: 13 }, bodyFont: { size: 12 }, padding: 10, cornerRadius: 6 }
+                    tooltip: { backgroundColor: PULSE_PALETTE.ink, titleColor: '#F0EEE6', bodyColor: '#F0EEE6', borderColor: PULSE_PALETTE.hairline, borderWidth: 1, padding: 10, cornerRadius: 6 }
                 },
                 scales: {
-                    y: { title: { display: true, text: 'mg/dL', font: { size: 12, weight: 'bold' } } }
+                    y: { title: { display: true, text: 'mg/dL', font: { size: 11 }, color: PULSE_PALETTE.inkTertiary }, grid: { color: PULSE_PALETTE.hairline }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } },
+                    x: { grid: { color: PULSE_PALETTE.hairline }, ticks: { color: PULSE_PALETTE.inkTertiary, font: { family: "'SF Mono', Menlo, Consolas, monospace", size: 11 } } }
                 }
             }
         });
 
-        // Accordion Toggle Function
+        // Accordion Toggle Function — required by data-dyn JS hook contract
         function toggleAccordion(trigger) {
             const content = trigger.nextElementSibling;
-            trigger.classList.toggle('open');
+            const isOpen = trigger.classList.toggle('open');
             content.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         }
     </script>
+
+    <!-- Dynamic GA / trimester / footer engine — DO NOT MOVE -->
+    <script src="data/dashboard-dynamic.js"></script>
 </body>
 </html>

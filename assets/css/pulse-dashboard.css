@@ -1,0 +1,780 @@
+/* =====================================================================
+   NBB Health Dashboard — Pulse-Adapted Design System
+   ---------------------------------------------------------------------
+   Project:  Nikita Pregnancy Health Dashboard
+   Version:  ver01_25042026 (Phase 1 of redesign)
+   Date:     25 April 2026
+   Source:   Pulse_Design-System_ver01_25042026.md
+             NBB-Dashboard_Brief_ver01_25042026.md (Part 2)
+
+   SINGLE SOURCE OF TRUTH.
+   All four pages (index, pregnancy, ultrasound, nutrition) link to this
+   stylesheet. Edit here -> every page updates. Do not duplicate styles
+   in page-level <style> blocks; only inline what is genuinely one-off.
+
+   Structure:
+     1. Tokens         — CSS custom properties (colour, type, spacing)
+     2. Reset & base   — box-sizing, body, focus, prefers-reduced-motion
+     3. Type scale     — eyebrow, display, h1/h2/h3, body, mono, data-num
+     4. Layout         — container, stack, grids, dividers
+     5. Components     — header-band, nav, patient-strip, now-card,
+                          kpi-tile, range-bar, data-table, callout,
+                          section-divider, footer, accordion,
+                          chart-frame, status-pill
+     6. Responsive     — 768px breakpoint
+     7. Print          — hide nav/footer; let panels reflow
+   ===================================================================== */
+
+
+/* =====================================================================
+   1. TOKENS
+   ===================================================================== */
+:root {
+  /* ----- Surface ------------------------------------------------- */
+  --paper:            #F0EEE6;   /* page background (warm off-white) */
+  --surface:          #FAF9F5;   /* cards, callouts, NOW band       */
+  --hairline:         #E3E0D6;   /* dividers, table borders         */
+
+  /* ----- Ink ----------------------------------------------------- */
+  --ink-primary:      #1F1F1F;
+  --ink-secondary:    #5A5A5A;
+  --ink-tertiary:     #8A8682;
+
+  /* ----- Semantic — medical signal ------------------------------ */
+  --sage:             #2C7A4F;   /* in-range, stable, recovering    */
+  --clay:             #C77B2C;   /* watch — within 10% of boundary  */
+  --terracotta:       #CC785C;   /* out of range / escalation       */
+  --brick:            #B33636;   /* reserved for severe escalations */
+
+  /* ----- Semantic tints ----------------------------------------- */
+  --sage-tint:        #EAF2EC;
+  --clay-tint:        #F7EBDD;
+  --terracotta-tint:  #F6E2DA;
+  --brick-tint:       #F5E5E3;
+
+  /* ----- Patient-identity tint (the only place pink survives)
+     pink = WHO. sage/clay/terracotta = HOW. Strict separation.    */
+  --identity-tint:    #F5E5E8;
+  --identity-ink:     #7A2A47;
+
+  /* ----- Type stack --------------------------------------------- */
+  --font-serif:  'Tiempos Headline', 'Tiempos', Georgia, 'Times New Roman', serif;
+  --font-sans:   'Styrene B', 'Styrene', -apple-system, BlinkMacSystemFont,
+                 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:   'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  /* ----- Spacing (8px base) ------------------------------------- */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  16px;
+  --s-4:  24px;
+  --s-5:  32px;
+  --s-6:  48px;
+  --s-7:  64px;
+
+  /* ----- Corner radius (only three values, ever) ---------------- */
+  --r-chip:  4px;
+  --r-block: 8px;
+  --r-card:  12px;
+
+  /* ----- Elevation (one level only) ----------------------------- */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-2: 0 2px 6px rgba(0,0,0,0.08);
+
+  /* ----- Layout ------------------------------------------------- */
+  --container-max: 1100px;
+}
+
+
+/* =====================================================================
+   2. RESET & BASE
+   ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink-primary);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img, svg, canvas { max-width: 100%; height: auto; display: block; }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--ink-primary);
+  outline-offset: 2px;
+  border-radius: var(--r-chip);
+}
+
+/* Honour user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+
+/* =====================================================================
+   3. TYPE SCALE
+   Web-adapted from Pulse §3. Display sizes are larger than email.
+   ===================================================================== */
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  line-height: 1.4;
+}
+
+.display-1 {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink-primary);
+  letter-spacing: -0.5px;
+}
+
+.display-2 {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink-primary);
+}
+
+.h1 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--ink-primary);
+}
+
+.h2 {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink-primary);
+}
+
+.h3 {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink-primary);
+}
+
+.body { font-size: 16px; line-height: 1.55; color: var(--ink-primary); }
+.body-sm { font-size: 14px; line-height: 1.5; color: var(--ink-secondary); }
+.caption { font-size: 12px; line-height: 1.5; color: var(--ink-tertiary); }
+
+.mono { font-family: var(--font-mono); }
+
+.data-num {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.big-num {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--ink-primary);
+}
+
+/* Defensive: cancel browser bold for plain headings inside body */
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 400; }
+
+/* Generic semantic-text helpers (do not combine with other channels) */
+.txt-sage       { color: var(--sage); }
+.txt-clay       { color: var(--clay); }
+.txt-terracotta { color: var(--terracotta); }
+.txt-brick      { color: var(--brick); }
+.txt-secondary  { color: var(--ink-secondary); }
+.txt-tertiary   { color: var(--ink-tertiary); }
+
+
+/* =====================================================================
+   4. LAYOUT PRIMITIVES
+   ===================================================================== */
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--s-4);
+}
+
+/* Vertical rhythm — direct children get top margin equal to --gap */
+.stack > * + * { margin-top: var(--s-4); }
+.stack-sm > * + * { margin-top: var(--s-2); }
+.stack-lg > * + * { margin-top: var(--s-6); }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-4);
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+}
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-4);
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: var(--s-4) 0;
+}
+
+
+/* =====================================================================
+   5. COMPONENTS
+   ===================================================================== */
+
+/* ----- 5.1 Header band (sticky nav + patient strip) ---------------- */
+.header-band {
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--hairline);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* The nav row inside header-band */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+}
+
+.nav__brand {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--ink-primary);
+  letter-spacing: -0.2px;
+}
+
+.nav__list {
+  list-style: none;
+  display: flex;
+  gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+}
+
+.nav__link {
+  display: inline-block;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  border-radius: var(--r-chip);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.nav__link:hover { color: var(--ink-primary); background: var(--paper); }
+.nav__link.is-active {
+  color: var(--ink-primary);
+  background: transparent;
+  position: relative;
+}
+.nav__link.is-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -2px;
+  height: 2px;
+  background: var(--ink-primary);
+}
+
+/* ----- 5.2 Patient strip (identity, lives directly under nav) ------ */
+.patient-strip {
+  background: var(--identity-tint);
+  border-bottom: 1px solid var(--hairline);
+}
+.patient-strip__inner {
+  padding: 12px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-3);
+  font-size: 14px;
+  color: var(--ink-primary);
+}
+.patient-strip__name {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--identity-ink);
+  font-weight: 400;
+}
+.patient-strip__sep {
+  color: var(--ink-tertiary);
+  user-select: none;
+}
+.patient-strip__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+.patient-strip__chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-chip);
+  background: transparent;
+  font-size: 12px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+/* ----- 5.3 Page title block --------------------------------------- */
+.page-title {
+  margin: var(--s-6) 0 var(--s-4);
+}
+.page-title__eyebrow { margin-bottom: var(--s-2); }
+.page-title h1 { margin: 0; }
+.page-title__sub {
+  margin-top: var(--s-2);
+  color: var(--ink-secondary);
+  font-size: 15px;
+}
+
+/* ----- 5.4 NOW band (the proposal's signature move) --------------- */
+.now-card {
+  background: var(--surface);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  margin-bottom: var(--s-6);
+}
+.now-card__eyebrow { margin-bottom: var(--s-3); }
+.now-card__lede {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  line-height: 1.35;
+  color: var(--ink-primary);
+  margin-bottom: var(--s-4);
+}
+.now-card__lede .sep {
+  color: var(--ink-tertiary);
+  margin: 0 8px;
+}
+.now-card__watch-label {
+  margin: var(--s-4) 0 var(--s-2);
+}
+.now-card__watch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.now-card__watch-list > li {
+  position: relative;
+  padding: 10px 0 10px 16px;
+  border-left: 3px solid var(--ink-tertiary);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-primary);
+  margin-top: var(--s-2);
+}
+.now-card__watch-list > li:first-child { margin-top: 0; }
+.now-card__watch-list > li.is-watch { border-left-color: var(--clay); }
+.now-card__watch-list > li.is-alert { border-left-color: var(--terracotta); }
+.now-card__watch-list > li.is-good  { border-left-color: var(--sage); }
+
+/* ----- 5.5 KPI tile ------------------------------------------------ */
+.kpi-tile {
+  background: var(--surface);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+}
+.kpi-tile__eyebrow { margin-bottom: var(--s-2); }
+.kpi-tile__value {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  line-height: 1.1;
+  color: var(--ink-primary);
+  margin-bottom: var(--s-2);
+}
+.kpi-tile__value .unit {
+  font-size: 16px;
+  color: var(--ink-secondary);
+  margin-left: 4px;
+  font-family: var(--font-sans);
+}
+.kpi-tile__sub {
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+/* Semantic tinted sub-line — colour ONLY on the supporting line */
+.kpi-tile__sub.is-good  { color: var(--sage); }
+.kpi-tile__sub.is-watch { color: var(--clay); }
+.kpi-tile__sub.is-alert { color: var(--terracotta); }
+
+/* ----- 5.6 Range bar (NEW dashboard primitive) ---------------------- */
+.range-bar {
+  margin: var(--s-3) 0;
+}
+.range-bar__label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+.range-bar__value {
+  font-family: var(--font-mono);
+  color: var(--ink-primary);
+}
+.range-bar__track {
+  position: relative;
+  height: 6px;
+  background: var(--hairline);
+  border-radius: 3px;
+}
+.range-bar__band {
+  /* The reference range — slightly darker bar inside the track */
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(31, 31, 31, 0.10);
+  border-radius: 3px;
+}
+.range-bar__dot {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ink-primary);
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--ink-primary);
+}
+.range-bar__dot.is-good  { background: var(--sage);       box-shadow: 0 0 0 1px var(--sage); }
+.range-bar__dot.is-watch { background: var(--clay);       box-shadow: 0 0 0 1px var(--clay); }
+.range-bar__dot.is-alert { background: var(--terracotta); box-shadow: 0 0 0 1px var(--terracotta); }
+.range-bar__scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--ink-tertiary);
+  font-family: var(--font-mono);
+}
+
+/* ----- 5.7 Data table ---------------------------------------------- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.data-table th {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: left;
+  padding: 0 var(--s-3) var(--s-2);
+  border-bottom: 1px solid var(--hairline);
+}
+.data-table td {
+  padding: var(--s-3);
+  border-bottom: 1px solid var(--hairline);
+  vertical-align: middle;
+  color: var(--ink-primary);
+}
+.data-table td.num {
+  font-family: var(--font-mono);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.data-table tr:last-child td { border-bottom: 0; }
+
+/* ----- 5.8 Callout (advisory card) --------------------------------- */
+.callout {
+  background: var(--surface);
+  border-left: 3px solid var(--ink-tertiary);
+  border-radius: 0 var(--r-block) var(--r-block) 0;
+  padding: var(--s-3) var(--s-4);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-primary);
+}
+.callout--note  { border-left-color: var(--sage); }
+.callout--watch { border-left-color: var(--clay); }
+.callout--alert { border-left-color: var(--terracotta); }
+.callout__title {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin-bottom: 6px;
+}
+
+/* ----- 5.9 Section divider with eyebrow label ---------------------- */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin: var(--s-7) 0 var(--s-5);
+}
+.section-divider::before,
+.section-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--hairline);
+}
+
+/* ----- 5.10 Panel card (per-blood-panel container) ----------------- */
+.panel {
+  background: var(--surface);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+.panel--watch { border-left: 3px solid var(--clay); }
+.panel--alert { border-left: 3px solid var(--terracotta); }
+.panel--good  { border-left: 3px solid var(--sage); }
+.panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+.panel__title { font-family: var(--font-sans); font-size: 18px; font-weight: 600; color: var(--ink-primary); margin: 0; }
+.panel__trajectory { font-size: 12px; color: var(--ink-tertiary); text-transform: uppercase; letter-spacing: 1.5px; }
+.panel__summary {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-primary);
+  margin: var(--s-3) 0;
+}
+
+/* ----- 5.11 Status pill (single signal) --------------------------- */
+.status-pill {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--r-chip);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--ink-secondary);
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.status-pill--good   { color: var(--sage);       border-color: var(--sage); }
+.status-pill--watch  { color: var(--clay);       border-color: var(--clay); }
+.status-pill--alert  { color: var(--terracotta); border-color: var(--terracotta); }
+
+/* ----- 5.12 Chart frame (Chart.js wrapper) ------------------------- */
+.chart-frame {
+  background: var(--surface);
+  border-radius: var(--r-block);
+  padding: var(--s-3);
+  margin: var(--s-3) 0 var(--s-4);
+  border: 1px solid var(--hairline);
+}
+.chart-frame__canvas {
+  position: relative;
+  height: 280px;
+}
+.chart-frame__canvas canvas { height: 100% !important; width: 100% !important; }
+
+/* ----- 5.13 Accordion (preserve existing JS behaviour) ------------- */
+/* JS toggles `.open` on .accordion-trigger and .accordion-content    */
+.accordion-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  background: transparent;
+  border: 0;
+  padding: var(--s-2) 0;
+  margin-top: var(--s-3);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.accordion-trigger:hover { color: var(--ink-primary); }
+.accordion-trigger::after {
+  content: "→";
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.accordion-trigger.open { color: var(--ink-primary); }
+.accordion-trigger.open::after {
+  transform: rotate(90deg);
+}
+.accordion-trigger > span:first-child::after {
+  content: "";
+}
+/* Hide any old chevron span the markup may carry */
+.accordion-trigger > span:last-child:not(:first-child) {
+  display: none;
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.accordion-content.open {
+  max-height: 4000px;
+  transition: max-height 0.5s ease;
+}
+.accordion-content-inner {
+  padding: var(--s-3) 0 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink-primary);
+}
+.accordion-content-inner h4 {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  margin: var(--s-3) 0 var(--s-2);
+  color: var(--ink-primary);
+}
+.accordion-content-inner p { margin: 0 0 var(--s-2); }
+.accordion-content-inner ul {
+  margin: 0 0 var(--s-2);
+  padding-left: var(--s-4);
+}
+.accordion-content-inner li { margin-bottom: 6px; }
+.accordion-content-inner strong { font-weight: 600; }
+
+/* ----- 5.14 Footer (with provenance) ------------------------------ */
+.footer {
+  border-top: 1px solid var(--hairline);
+  margin-top: var(--s-7);
+  padding: var(--s-4) 0 var(--s-5);
+  text-align: center;
+  color: var(--ink-tertiary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.footer p { margin: 0; }
+.footer p + p { margin-top: 4px; }
+
+
+/* =====================================================================
+   6. RESPONSIVE
+   ===================================================================== */
+@media (max-width: 768px) {
+  .container { padding: 0 var(--s-3); }
+
+  .nav { height: 56px; }
+  .nav__brand { font-size: 16px; }
+  .nav__list { gap: 0; }
+  .nav__link { padding: 6px 8px; font-size: 13px; }
+
+  .patient-strip__inner { font-size: 13px; padding: 10px 0; }
+  .patient-strip__chips { margin-left: 0; width: 100%; }
+
+  .display-1 { font-size: 32px; }
+  .display-2 { font-size: 26px; }
+  .h1 { font-size: 22px; }
+  .h2 { font-size: 18px; }
+
+  .now-card { padding: var(--s-3); }
+  .now-card__lede { font-size: 18px; }
+
+  .grid-2, .grid-3 { grid-template-columns: 1fr; gap: var(--s-3); }
+
+  .kpi-tile__value { font-size: 30px; }
+
+  .panel { padding: var(--s-3); }
+  .panel__head { flex-direction: column; align-items: flex-start; }
+
+  .chart-frame__canvas { height: 240px; }
+
+  .section-divider { margin: var(--s-5) 0 var(--s-4); }
+}
+
+
+/* =====================================================================
+   7. PRINT
+   For doctor visits — let panels breathe, hide chrome.
+   ===================================================================== */
+@media print {
+  body { background: #FFFFFF; color: #000; }
+  .header-band, .nav, .patient-strip { position: static; }
+  .nav__list, .footer, .accordion-trigger { display: none !important; }
+  .accordion-content { max-height: none !important; overflow: visible !important; }
+  .panel, .now-card, .kpi-tile, .callout, .chart-frame {
+    background: #FFFFFF;
+    border: 1px solid #BBB;
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+  .section-divider::before, .section-divider::after { border-color: #BBB; }
+  a { color: #000; text-decoration: underline; }
+}
+
+/* ─────────────────────────────────────────────────────────
+   8. PATCHES — overrides for runtime-injected styles
+   ─────────────────────────────────────────────────────────
+   dashboard-dynamic.js → injectCurrentMilestoneStyle()
+   appends a <style> block at runtime that uses the OLD
+   palette (#EA4335 red, pink gradient). We can't easily
+   stop it without editing the JS (which is the data-flow
+   contract). Instead, we beat it with higher-specificity
+   CSS that lands here in the same cascade level — '!important'
+   matches the JS '!important' on border-left-color, and the
+   added '.milestone-grid' qualifier raises specificity above
+   the injected rule's source-order win.
+   ───────────────────────────────────────────────────────── */
+
+.milestone-grid .milestone-card.current {
+  border-left-color: var(--sage) !important;
+  background: var(--sage-tint);
+  box-shadow: 0 4px 16px rgba(44, 122, 79, 0.15);
+}
+
+.milestone-grid .milestone-card.current::before {
+  background: var(--sage);
+  color: var(--paper);
+}
+
+/* End of pulse-dashboard.css */

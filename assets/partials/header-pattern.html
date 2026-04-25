@@ -1,0 +1,156 @@
+<!--
+  =====================================================================
+  NBB Health Dashboard — Shared Header / Patient Strip / Footer Pattern
+  ---------------------------------------------------------------------
+  This file is a REFERENCE PARTIAL. Cowork can't include HTML at runtime
+  (no build step, deployed as static files to GitHub Pages), so each of
+  the four pages pastes these blocks verbatim.
+
+  Source of truth: this file. If the pattern changes, edit it here, then
+  copy the relevant block(s) into all four pages in the same session.
+
+  Pages that use this:
+    - index.html      (Blood Work)
+    - pregnancy.html  (Pregnancy)
+    - ultrasound.html (Ultrasounds)
+    - nutrition.html  (Diet & Nutrition)
+
+  Per-page swaps:
+    - <a class="nav__link is-active"> moves to the page's own link.
+    - <title> + <meta name="description"> change.
+    - The page-title block (h1 + eyebrow + sub) is page-specific.
+    - The NOW band is page-specific.
+    - Footer text is identical on every page.
+
+  Style + behaviour:
+    - Loaded via assets/css/pulse-dashboard.css (single source of truth)
+    - data/dashboard-dynamic.js handles all data-dyn* tokens
+    - The patient strip uses the identity tint (#F5E5E8) — the only
+      place pink survives. Everything else is the Pulse palette.
+  =====================================================================
+-->
+
+<!-- ============================================================= -->
+<!-- BLOCK 1 — <head> additions (paste inside <head> on every page) -->
+<!-- ============================================================= -->
+<!--
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Personal health dashboard for Nikita Bhagat — pregnancy tracking and blood work history.">
+<title>NBB Health Dashboard - {Page Name}</title>
+<link rel="stylesheet" href="assets/css/pulse-dashboard.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+-->
+
+
+<!-- ============================================================= -->
+<!-- BLOCK 2 — Header band (sticky nav + patient strip)             -->
+<!--          Paste as the FIRST element inside <body>.             -->
+<!-- ============================================================= -->
+<header class="header-band">
+  <nav class="container nav" aria-label="Primary">
+    <a href="index.html" class="nav__brand">NBB Health Dashboard</a>
+    <ul class="nav__list">
+      <!-- Mark exactly ONE link as is-active per page. -->
+      <li><a href="index.html"      class="nav__link is-active">Blood work</a></li>
+      <li><a href="pregnancy.html"  class="nav__link">Pregnancy</a></li>
+      <li><a href="ultrasound.html" class="nav__link">Ultrasounds</a></li>
+      <li><a href="nutrition.html"  class="nav__link">Nutrition</a></li>
+    </ul>
+  </nav>
+  <div class="patient-strip" aria-label="Patient identity">
+    <div class="container patient-strip__inner">
+      <span class="patient-strip__name">Nikita Bhagat</span>
+      <span class="patient-strip__sep">·</span>
+      <span>40</span>
+      <span class="patient-strip__sep">·</span>
+      <span>A+</span>
+      <span class="patient-strip__sep">·</span>
+      <span>G3P1L0A1</span>
+      <span class="patient-strip__sep">·</span>
+      <!-- Live gestational age — populated by dashboard-dynamic.js -->
+      <span data-dyn="ga-wd">26w 0d</span>
+      <span class="patient-strip__sep">·</span>
+      <!-- Live EDD — populated by dashboard-dynamic.js -->
+      <span>EDD <span data-dyn="edd-short">27 Jul 2026</span></span>
+      <div class="patient-strip__chips">
+        <span class="patient-strip__chip">APLA positive</span>
+        <span class="patient-strip__chip">Iron deficiency anemia</span>
+        <span class="patient-strip__chip">Advanced maternal age</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+<!-- ============================================================= -->
+<!-- BLOCK 3 — Page title (paste inside <main class="container">)   -->
+<!--          The h1 + eyebrow + optional sub change per page.      -->
+<!-- ============================================================= -->
+<!--
+<section class="page-title">
+  <p class="eyebrow page-title__eyebrow">Blood work</p>
+  <h1 class="display-1">Blood work</h1>
+  <p class="page-title__sub">Latest results, trend lines, and reference ranges.</p>
+</section>
+-->
+
+
+<!-- ============================================================= -->
+<!-- BLOCK 4 — NOW band (paste right after the page title)          -->
+<!--          CONTENT IS PAGE-SPECIFIC. Hand-curate per fortnight.  -->
+<!--          Class modifiers on each <li>:                         -->
+<!--             is-good   → sage left bar                          -->
+<!--             is-watch  → clay left bar                          -->
+<!--             is-alert  → terracotta left bar                    -->
+<!-- ============================================================= -->
+<!--
+<section class="now-card" aria-labelledby="now-heading">
+  <p class="eyebrow now-card__eyebrow" id="now-heading">Now</p>
+  <p class="now-card__lede">
+    <span data-dyn="ga-wd">26w 0d</span>
+    <span class="sep">·</span>
+    <span data-dyn="trimester-name">Second Trimester</span>
+    <span class="sep">·</span>
+    <span data-dyn="weeks-remaining">~14 weeks remaining</span>
+  </p>
+  <p class="eyebrow now-card__watch-label">Watch this fortnight</p>
+  <ul class="now-card__watch-list">
+    <li class="is-watch"><strong>Platelets 234 K/µL</strong> — declining trend, recheck at 28 weeks.</li>
+    <li class="is-good"><strong>Hb 11.3 g/dL</strong> — recovering, continue Fexacta with vitamin C.</li>
+    <li class="is-good"><strong>Uric acid 2.7 mg/dL</strong> — baseline for preeclampsia surveillance.</li>
+  </ul>
+</section>
+-->
+
+
+<!-- ============================================================= -->
+<!-- BLOCK 5 — Section divider with eyebrow (paste between zones)   -->
+<!--          Splits "Now / current state" from "Reference data".   -->
+<!-- ============================================================= -->
+<!--
+<div class="section-divider">
+  <span class="eyebrow">Reference</span>
+</div>
+-->
+
+
+<!-- ============================================================= -->
+<!-- BLOCK 6 — Footer (paste at end of <body>, identical on all pages) -->
+<!-- ============================================================= -->
+<footer class="footer container" role="contentinfo">
+  <p>
+    NBB Health Dashboard ·
+    <span data-dyn-last-updated="long">Last updated: 25 April 2026</span>
+  </p>
+  <p>Reference only. Confirm any change with your doctor. · Built for Nikita and HB.</p>
+</footer>
+
+
+<!-- ============================================================= -->
+<!-- BLOCK 7 — Closing scripts (paste before </body>)               -->
+<!--          Page-specific Chart.js inits go ABOVE this block.     -->
+<!-- ============================================================= -->
+<!--
+<script src="data/dashboard-dynamic.js"></script>
+-->
